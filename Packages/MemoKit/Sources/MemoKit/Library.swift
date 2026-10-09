@@ -91,6 +91,34 @@ public final class Library {
         if let updated = recording(id) { finalize(updated) }
     }
 
+    public func trim(_ id: Recording.ID, to range: Range<TimeInterval>, asNew: Bool = false) throws {
+        try keep([range], of: id, asNew: asNew)
+    }
+
+    public func delete(_ range: Range<TimeInterval>, from id: Recording.ID, asNew: Bool = false) throws {
+        guard let duration = recording(id)?.duration else { return }
+        try keep([0..<range.lowerBound, range.upperBound..<duration].filter { !$0.isEmpty }, of: id, asNew: asNew)
+    }
+
+    private func keep(_ ranges: [Range<TimeInterval>], of id: Recording.ID, asNew: Bool) throws {
+        guard let source = recording(id) else { return }
+        let temporary = directory.appending(path: "\(UUID().uuidString).edit.caf")
+        let duration = try AudioFiles.render(url(for: source), keeping: ranges, to: temporary)
+        let bins = peaks[id] ?? []
+        let kept = ranges.flatMap { range in
+            bins[min(bins.count, Int(range.lowerBound * Peaks.binsPerSecond))..<min(bins.count, Int((range.upperBound * Peaks.binsPerSecond).rounded(.up)))]
+        }
+        guard asNew else {
+            try replaceAudio(of: id, with: temporary, duration: duration, peaks: kept)
+            return
+        }
+        var copy = Recording(title: nextTitle(base: "\(source.title) copy"), created: .now, duration: duration, file: "")
+        copy.file = "\(copy.id.uuidString).caf"
+        copy.folder = source.folder
+        try FileManager.default.moveItem(at: temporary, to: url(for: copy))
+        insert(copy, peaks: kept)
+    }
+
     public func duplicate(_ id: Recording.ID) throws {
         guard let source = recording(id) else { return }
         var copy = Recording(title: nextTitle(base: "\(source.title) copy"), created: source.created.addingTimeInterval(0.001), duration: source.duration, file: "")

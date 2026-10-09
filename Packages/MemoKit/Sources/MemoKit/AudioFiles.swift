@@ -60,4 +60,26 @@ enum AudioFiles {
             remaining -= AVAudioFramePosition(buffer.frameLength)
         }
     }
+
+    static func render(_ source: URL, keeping ranges: [Range<TimeInterval>], to target: URL) throws -> TimeInterval {
+        let input = try AVAudioFile(forReading: source)
+        let format = input.processingFormat
+        let output = try AVAudioFile(
+            forWriting: target,
+            settings: takeSettings(sampleRate: format.sampleRate, channels: format.channelCount),
+            commonFormat: format.commonFormat,
+            interleaved: format.isInterleaved
+        )
+        var frames: AVAudioFramePosition = 0
+        for range in ranges {
+            let start = min(input.length, AVAudioFramePosition(range.lowerBound * format.sampleRate))
+            let end = min(input.length, AVAudioFramePosition(range.upperBound * format.sampleRate))
+            guard end > start else { continue }
+            input.framePosition = start
+            try copy(from: input, to: output, frames: end - start)
+            frames += end - start
+        }
+        output.close()
+        return Double(frames) / format.sampleRate
+    }
 }
