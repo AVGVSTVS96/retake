@@ -171,3 +171,29 @@ func makeLibrary() -> Library {
         #expect(library.recordings.isEmpty)
     }
 }
+
+@MainActor
+@Suite struct EditTests {
+    @Test func trimAndDeleteRanges() async throws {
+        let library = makeLibrary()
+        let input = ManualInput()
+        let recorder = Recorder(library: library, input: input)
+        recorder.start()
+        input.feed(seconds: 10)
+        let recording = try #require(recorder.stop())
+        for task in library.finalizing.values { await task.value }
+
+        try library.trim(recording.id, to: 2..<8)
+        #expect(abs(library.recording(recording.id)!.duration - 6) < 0.01)
+        #expect(library.peaks[recording.id]!.count == 300)
+
+        try library.delete(1..<2, from: recording.id, asNew: true)
+        #expect(library.recordings.count == 2)
+        let copy = try #require(library.recordings.first { $0.id != recording.id })
+        #expect(abs(copy.duration - 5) < 0.01)
+        #expect(copy.title == "New Recording copy")
+        for task in library.finalizing.values { await task.value }
+        #expect(library.recordings.allSatisfy { $0.isFinalized })
+        #expect(abs(try AudioFiles.duration(of: library.url(for: library.recording(recording.id)!)) - 6) < 0.03)
+    }
+}
