@@ -32,9 +32,11 @@ enum Demo {
         try? FileManager.default.createDirectory(at: scratch, withIntermediateDirectories: true)
         let now = Calendar.current.date(bySettingHour: 9, minute: 41, second: 0, of: .now)!
         for (index, sample) in samples.enumerated().reversed() {
-            let url = scratch.appending(path: "\(index)-\(sample.seconds).caf")
+            let url = scratch.appending(path: "\(index)-\(sample.seconds)-v2.caf")
             if !FileManager.default.fileExists(atPath: url.path) {
-                try? SyntheticVoice(seed: UInt64(index + 3)).write(seconds: sample.seconds, to: url)
+                let partial = scratch.appending(path: "\(UUID().uuidString).partial.caf")
+                try? SyntheticVoice(seed: UInt64(index + 3)).write(seconds: sample.seconds, to: partial)
+                try? FileManager.default.moveItem(at: partial, to: url)
             }
             guard let recording = try? library.importAudio(from: url, title: sample.title, created: now.addingTimeInterval(-sample.daysAgo * 86_400)) else { continue }
             if sample.transcript {

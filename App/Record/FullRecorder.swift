@@ -80,7 +80,7 @@ struct FullRecorder: View {
                             .transition(.opacity)
                         }
                     }
-                    .frame(height: 372)
+                    .frame(minHeight: 180, idealHeight: 372, maxHeight: 372)
                     .animation(.smooth(duration: 0.25), value: showsTranscript)
                     .padding(.top, 22)
                     Text(Format.timer(time))
@@ -278,7 +278,7 @@ struct WaveformPanel: View {
             .contentShape(.rect)
             .gesture(drag, isEnabled: onSeek != nil)
         }
-        .frame(height: 372)
+        .frame(minHeight: 180, idealHeight: 372, maxHeight: 372)
         .accessibilityLabel("Waveform")
     }
 

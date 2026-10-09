@@ -22,6 +22,9 @@ struct SplitRoot: View {
                 .searchable(text: $session.query, placement: .toolbar, prompt: Text(library.recordings.contains { $0.transcript != nil } ? "Titles, Transcripts" : "Search"))
         }
         .navigationSplitViewStyle(.balanced)
+        .sheet(item: Binding(get: { if case .recording = session.sheet { session.sheet } else { nil } }, set: { session.sheet = $0 })) { mode in
+            RecordSheet(mode: mode)
+        }
         .task {
             if session.selected == nil { session.selected = library.recordings(in: .all).first?.id }
             await Demo.stage(session: session, recorder: recorder, library: library)
@@ -73,13 +76,14 @@ struct PlayerDetail: View {
                 .foregroundStyle(.secondary)
             }
             .padding(.top, 12)
+            .layoutPriority(1)
             TimelineView(.animation(paused: !player.isPlaying)) { _ in
                 let time = player.current == recording.id ? player.time() : 0
                 VStack(spacing: 0) {
                     Group {
                         if session.transcript == recording.id {
                             TranscriptView(transcript: recording.transcript, time: time, isPending: library.transcribing.contains(recording.id))
-                                .frame(height: 372)
+                                .frame(minHeight: 180, idealHeight: 372, maxHeight: 372)
                         } else {
                             WaveformPanel(peaks: library.peaks[recording.id] ?? [], duration: recording.duration, time: time, style: .playback) { player.seek(to: $0) }
                         }
