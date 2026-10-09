@@ -49,7 +49,7 @@ public final class Recorder {
         error = nil
     }
 
-    public func record() async {
+    public func record(title: String? = nil) async {
         guard phase == .idle, !isStarting else { return }
         isStarting = true
         defer { isStarting = false }
@@ -57,7 +57,7 @@ public final class Recorder {
             error = .permissionDenied
             return
         }
-        start()
+        start(title: title.map { library.nextTitle(base: $0) })
     }
 
     public func record(replacing id: Recording.ID, at time: TimeInterval) async {
