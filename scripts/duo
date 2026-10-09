@@ -1,0 +1,28 @@
+#!/bin/bash
+# Runs on the Mac. Builds with Xcode 27.1 and screenshots both iPhone Duo displays.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+export DEVELOPER_DIR=/Applications/Xcode-beta.app/Contents/Developer
+RUNTIME=com.apple.CoreSimulator.SimRuntime.iOS-27-1
+source scripts/sim-lib
+APP=build/duo/Build/Products/Debug-iphonesimulator/Memos.app
+id=$(ensure "iPhone Duo" iPhone-Duo)
+xcodegen generate -q
+xcodebuild -project VoiceMemos.xcodeproj -scheme Memos -sdk iphonesimulator -configuration Debug -derivedDataPath build/duo -quiet build 2>&1 | grep -E "error" || true
+xcrun simctl bootstatus "$id" -b >/dev/null
+xcrun simctl status_bar "$id" override --time 9:41 --batteryState charged --batteryLevel 100 >/dev/null 2>&1 || true
+xcrun simctl privacy "$id" grant microphone "$BUNDLE" >/dev/null 2>&1 || true
+xcrun simctl install "$id" "$APP"
+mkdir -p shots/raw
+displays=$(xcrun simctl io "$id" enumerate | awk '/UUID:/{u=$2} /Display class: 0/{print u}')
+for appearance in ${APPEARANCES:-light dark}; do
+  xcrun simctl ui "$id" appearance "$appearance"
+  xcrun simctl terminate "$id" "$BUNDLE" 2>/dev/null || true
+  xcrun simctl launch "$id" "$BUNDLE" -demo "$@" >/dev/null
+  sleep "${SETTLE:-7}"
+  n=0
+  for display in $displays; do
+    n=$((n + 1))
+    xcrun simctl io "$id" screenshot --display "$display" "shots/raw/iphone-duo-$n-${TAG:-list}-$appearance.png" >/dev/null 2>&1 || true
+  done
+done

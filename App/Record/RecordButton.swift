@@ -5,11 +5,12 @@ struct RecordButton: View {
     @Environment(Recorder.self) private var recorder
     @Environment(Player.self) private var player
     @Environment(Session.self) private var session
+    @Environment(LocationNamer.self) private var places
 
     var body: some View {
         Button {
             player.pause()
-            Task { await recorder.record() }
+            Task { await recorder.record(title: places.place) }
         } label: {
             Circle()
                 .fill(Color.record)
