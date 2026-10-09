@@ -3,33 +3,30 @@ import SwiftUI
 
 @main
 struct MemosApp: App {
-    @State private var library: Library
-    @State private var recorder: Recorder
-    @State private var player = Player()
-
-    init() {
-        let library = Demo.isEnabled ? Demo.library() : Library.standard()
-        _library = State(initialValue: library)
-        _recorder = State(initialValue: Recorder(library: library, input: Demo.isEnabled ? SyntheticInput() : MicInput()))
-    }
+    private let model = Model.shared
+    @State private var activity = RecordingActivityController()
 
     private func applySettings() {
         let defaults = UserDefaults.standard
-        library.quality = AudioQuality(rawValue: defaults.string(forKey: "audioQuality") ?? "") ?? .lossy
+        model.library.quality = AudioQuality(rawValue: defaults.string(forKey: "audioQuality") ?? "") ?? .lossy
         let days = defaults.object(forKey: "clearDeleted") as? Int ?? 30
         if days >= 0 {
-            library.purgeDeleted(before: Calendar.current.date(byAdding: .day, value: -days, to: .now)!)
+            model.library.purgeDeleted(before: Calendar.current.date(byAdding: .day, value: -days, to: .now)!)
         }
     }
 
     var body: some Scene {
         WindowGroup {
             Root()
-                .environment(library)
-                .environment(recorder)
-                .environment(player)
+                .environment(model.library)
+                .environment(model.recorder)
+                .environment(model.player)
+                .environment(model.session)
                 .task { applySettings() }
                 .onReceive(NotificationCenter.default.publisher(for: UserDefaults.didChangeNotification)) { _ in applySettings() }
+                .onChange(of: model.recorder.phase) { _, phase in
+                    activity.update(phase: phase, title: model.recorder.take?.title ?? "", elapsed: model.recorder.seconds)
+                }
         }
     }
 }

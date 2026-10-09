@@ -58,6 +58,7 @@ struct RecordSheet: View {
         if mode == .recorder {
             stop()
         } else {
+            recorder.stop()
             session.sheet = nil
         }
     }

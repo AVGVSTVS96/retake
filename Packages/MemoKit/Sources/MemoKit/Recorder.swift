@@ -22,6 +22,7 @@ public final class Recorder {
     public private(set) var seconds: TimeInterval = 0
     public private(set) var error: RecorderError?
     public private(set) var live: LiveTranscriber?
+    public private(set) var replacing: (id: Recording.ID, at: TimeInterval)?
     public var sampleRate = 48_000.0
     public var transcriptionLocale: Locale? = .current
 
@@ -59,9 +60,27 @@ public final class Recorder {
         start()
     }
 
-    public func start() {
+    public func record(replacing id: Recording.ID, at time: TimeInterval) async {
+        guard phase == .idle, !isStarting else { return }
+        isStarting = true
+        defer { isStarting = false }
+        guard await Self.permission() else {
+            error = .permissionDenied
+            return
+        }
+        start(replacing: id, at: time)
+    }
+
+    public func start(replacing id: Recording.ID, at time: TimeInterval) {
+        guard phase == .idle, let recording = library.recording(id) else { return }
+        replacing = (id, min(max(0, time), recording.duration))
+        start(title: recording.title)
+        if phase == .idle { replacing = nil }
+    }
+
+    public func start(title: String? = nil) {
         guard phase == .idle else { return }
-        let take = Take(id: UUID(), title: library.nextTitle(), created: .now)
+        let take = Take(id: UUID(), title: title ?? library.nextTitle(), created: .now)
         let (stream, continuation) = AsyncStream.makeStream(of: ([Float], AVAudioFramePosition).self)
         let writer: TakeWriter
         let live = transcriptionLocale.map(LiveTranscriber.init(locale:))
@@ -131,10 +150,22 @@ public final class Recorder {
         phase = .idle
         levels = result.peaks
         seconds = result.duration
+        let replacing = self.replacing
+        self.replacing = nil
         guard result.frames > 0 else {
             live?.cancel()
             try? FileManager.default.removeItem(at: writer.url)
             return nil
+        }
+        if let replacing {
+            live?.cancel()
+            do {
+                try library.replace(replacing.id, at: replacing.at, with: writer.url, duration: result.duration, peaks: result.peaks)
+            } catch {
+                self.error = .failedToSave
+                library.recoverTake(writer.url, title: take.title)
+            }
+            return library.recording(replacing.id)
         }
         let recording = Recording(id: take.id, title: take.title, created: take.created, duration: result.duration, file: writer.url.lastPathComponent)
         library.insert(recording, peaks: result.peaks, live: live)

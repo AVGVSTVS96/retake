@@ -14,7 +14,19 @@ struct FullRecorder: View {
         return nil
     }
 
-    private var isRecording: Bool { mode == .recorder && recorder.phase != .idle }
+    private var isReplacing: Bool { recorder.phase != .idle && recorder.replacing != nil && recorder.replacing?.id == recording?.id }
+    private var isRecording: Bool { (mode == .recorder && recorder.phase != .idle) || isReplacing }
+
+    private func capture(at time: TimeInterval) -> (peaks: [Float], duration: TimeInterval, time: TimeInterval) {
+        guard let replacing = recorder.replacing, let recording else {
+            return (recorder.levels, time, time)
+        }
+        let original = library.peaks[recording.id] ?? []
+        let start = Int(replacing.at * Peaks.binsPerSecond)
+        let end = start + recorder.levels.count
+        let merged = Array(original.prefix(start)) + recorder.levels + Array(original.dropFirst(min(original.count, end)))
+        return (merged, max(recording.duration, replacing.at + time), replacing.at + time)
+    }
 
     private var showsOptions: Bool { recording != nil && session.options == recording?.id }
     private var showsTranscript: Bool { session.transcript != nil && session.transcript == (recording?.id ?? recorder.take?.id) }
@@ -45,7 +57,8 @@ struct FullRecorder: View {
         VStack(spacing: 0) {
             header
             TimelineView(.animation(paused: !(recorder.phase == .recording || player.isPlaying))) { _ in
-                let time = isRecording ? recorder.displaySeconds() : player.time()
+                let live = capture(at: recorder.displaySeconds())
+                let time = isRecording ? live.time : player.time()
                 VStack(spacing: 0) {
                     ZStack {
                         if showsTranscript {
@@ -57,10 +70,10 @@ struct FullRecorder: View {
                                 .transition(.opacity)
                         } else {
                             WaveformPanel(
-                                peaks: isRecording ? recorder.levels : library.peaks[recording?.id ?? UUID()] ?? [],
-                                duration: isRecording ? time : (recording?.duration ?? 0),
+                                peaks: isRecording ? live.peaks : library.peaks[recording?.id ?? UUID()] ?? [],
+                                duration: isRecording ? live.duration : (recording?.duration ?? 0),
                                 time: time,
-                                style: recorder.phase == .recording && mode == .recorder ? .recording : .playback,
+                                style: recorder.phase == .recording && isRecording ? .recording : .playback,
                                 onSeek: isRecording ? nil : { player.seek(to: $0) }
                             )
                             .transition(.opacity)
@@ -160,7 +173,7 @@ struct FullRecorder: View {
 
     @ViewBuilder
     private var centerButton: some View {
-        if mode == .recorder {
+        if mode == .recorder || isReplacing {
             Button {
                 recorder.phase == .recording ? recorder.pause() : recorder.resume()
             } label: {
@@ -181,14 +194,20 @@ struct FullRecorder: View {
             .glassEffect(.regular.interactive(), in: .capsule)
             .accessibilityLabel(recorder.phase == .paused ? "Resume" : "Pause")
         } else {
-            Button {} label: {
+            Button {
+                guard let recording else { return }
+                let time = player.time()
+                player.pause()
+                Task { await recorder.record(replacing: recording.id, at: time) }
+            } label: {
                 Text("REPLACE")
-                    .font(.subheadline.weight(.bold))
+                    .font(.footnote.weight(.semibold))
                     .foregroundStyle(.white)
                     .frame(width: 140, height: 44)
             }
             .glassEffect(.regular.tint(.record).interactive(), in: .capsule)
-            .disabled(true)
+            .disabled(recorder.phase != .idle || showsTranscript)
+            .opacity(showsTranscript ? 0.4 : 1)
         }
     }
 }

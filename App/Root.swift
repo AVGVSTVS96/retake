@@ -3,7 +3,6 @@ import SwiftUI
 
 struct Root: View {
     @Environment(\.horizontalSizeClass) private var sizeClass
-    @State private var session = Session()
 
     var body: some View {
         Group {
@@ -13,7 +12,6 @@ struct Root: View {
                 PhoneRoot()
             }
         }
-        .environment(session)
     }
 }
 
@@ -37,6 +35,14 @@ struct PhoneRoot: View {
                     .matchedTransitionSource(id: TransitionID.record, in: transition)
                     .padding(.bottom, 6)
                     .transition(.opacity)
+            }
+        }
+        .onChange(of: recorder.phase) { old, phase in
+            if old == .idle, phase == .recording, recorder.replacing == nil, session.sheet == nil {
+                session.expanded = nil
+                session.sheet = .recorder
+            } else if phase == .idle, session.sheet == .recorder {
+                session.sheet = nil
             }
         }
         .task { await Demo.stage(session: session, recorder: recorder, library: library, path: $path) }
