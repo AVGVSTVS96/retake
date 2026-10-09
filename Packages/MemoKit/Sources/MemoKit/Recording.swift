@@ -53,6 +53,20 @@ public struct Transcript: Codable, Hashable, Sendable {
     }
 
     public var text: String { segments.map(\.text).joined(separator: " ") }
+
+    public func segmentIndex(at time: TimeInterval) -> Int? {
+        var low = 0
+        var high = segments.count
+        while low < high {
+            let middle = (low + high) / 2
+            if segments[middle].start <= time {
+                low = middle + 1
+            } else {
+                high = middle
+            }
+        }
+        return low == 0 ? nil : low - 1
+    }
 }
 
 public struct Folder: Identifiable, Codable, Hashable, Sendable {

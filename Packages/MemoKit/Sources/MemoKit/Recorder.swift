@@ -21,7 +21,9 @@ public final class Recorder {
     public private(set) var levels: [Float] = []
     public private(set) var seconds: TimeInterval = 0
     public private(set) var error: RecorderError?
+    public private(set) var live: LiveTranscriber?
     public var sampleRate = 48_000.0
+    public var transcriptionLocale: Locale? = .current
 
     @ObservationIgnored private let library: Library
     @ObservationIgnored private let input: AudioInput
@@ -29,6 +31,7 @@ public final class Recorder {
     @ObservationIgnored private var events: Task<Void, Never>?
     @ObservationIgnored private var anchor = (seconds: 0.0, time: 0.0)
     @ObservationIgnored private var isStarting = false
+    @ObservationIgnored private var interruptions: NotificationCenter.ObservationToken?
 
     public init(library: Library, input: AudioInput = MicInput()) {
         self.library = library
@@ -39,6 +42,10 @@ public final class Recorder {
     public func displaySeconds(at time: TimeInterval = CACurrentMediaTime()) -> TimeInterval {
         guard phase == .recording else { return seconds }
         return seconds + min(max(0, time - anchor.time), 0.12)
+    }
+
+    public func dismissError() {
+        error = nil
     }
 
     public func record() async {
@@ -57,19 +64,25 @@ public final class Recorder {
         let take = Take(id: UUID(), title: library.nextTitle(), created: .now)
         let (stream, continuation) = AsyncStream.makeStream(of: ([Float], AVAudioFramePosition).self)
         let writer: TakeWriter
+        let live = transcriptionLocale.map(LiveTranscriber.init(locale:))
         do {
             writer = try TakeWriter(url: library.newTakeURL(take.id), sampleRate: sampleRate, channels: 1) { bins, frames in
                 continuation.yield((bins, frames))
             }
-            try input.start { [writer] buffer in writer.append(buffer) }
+            try input.start { [writer] buffer in
+                writer.append(buffer)
+                live?.append(buffer)
+            }
         } catch {
             input.stop()
+            live?.cancel()
             try? FileManager.default.removeItem(at: library.newTakeURL(take.id))
             self.error = error as? RecorderError ?? .failedToStart
             return
         }
         self.writer = writer
         self.take = take
+        self.live = live
         levels = []
         seconds = 0
         error = nil
@@ -94,7 +107,10 @@ public final class Recorder {
     public func resume() {
         guard phase == .paused, let writer else { return }
         do {
-            try input.start { [writer] buffer in writer.append(buffer) }
+            try input.start { [writer, live = self.live] buffer in
+                writer.append(buffer)
+                live?.append(buffer)
+            }
             anchor = (seconds, CACurrentMediaTime())
             phase = .recording
         } catch {
@@ -110,15 +126,18 @@ public final class Recorder {
         events?.cancel()
         events = nil
         self.writer = nil
+        let live = self.live
+        self.live = nil
         phase = .idle
         levels = result.peaks
         seconds = result.duration
         guard result.frames > 0 else {
+            live?.cancel()
             try? FileManager.default.removeItem(at: writer.url)
             return nil
         }
         let recording = Recording(id: take.id, title: take.title, created: take.created, duration: result.duration, file: writer.url.lastPathComponent)
-        library.insert(recording, peaks: result.peaks)
+        library.insert(recording, peaks: result.peaks, live: live)
         return recording
     }
 
@@ -131,12 +150,9 @@ public final class Recorder {
     }
 
     private func observeInterruptions() {
-        #if os(iOS)
-        NotificationCenter.default.addObserver(forName: AVAudioSession.interruptionNotification, object: nil, queue: .main) { [weak self] note in
-            let began = (note.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt).flatMap(AVAudioSession.InterruptionType.init) == .began
-            guard began else { return }
-            MainActor.assumeIsolated { self?.pause() }
+        interruptions = NotificationCenter.default.addObserver(of: AVAudioSession.sharedInstance(), for: .didBecomeInactive) { [weak self] message in
+            guard case .systemInterruption = message.deactivationResult else { return }
+            self?.pause()
         }
-        #endif
     }
 }

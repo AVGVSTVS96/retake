@@ -1,0 +1,18 @@
+RUNTIME=${RUNTIME:-com.apple.CoreSimulator.SimRuntime.iOS-27-0}
+APP=build/Build/Products/Debug-iphonesimulator/Memos.app
+BUNDLE=com.shahidy.memos
+
+udid() {
+  xcrun simctl list devices -j | /usr/bin/python3 -c "
+import json, sys
+name, runtime = sys.argv[1], sys.argv[2]
+for d in json.load(sys.stdin)['devices'].get(runtime, []):
+    if d['name'] == name and d['isAvailable']: print(d['udid']); break" "$1" "$RUNTIME"
+}
+
+ensure() {
+  local name="memos $1" type="com.apple.CoreSimulator.SimDeviceType.$2" id
+  id=$(udid "$name")
+  [ -n "$id" ] || id=$(xcrun simctl create "$name" "$type" "$RUNTIME")
+  echo "$id"
+}

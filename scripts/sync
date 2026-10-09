@@ -1,4 +1,4 @@
 #!/bin/sh
 set -e
 cd "$(dirname "$0")/.."
-rsync -a --delete --exclude build --exclude .build --exclude shots/raw --exclude reference --exclude .git ./ mac:Developer/voice-memos/
+rsync -a --delete --exclude /build --exclude .build --exclude /shots/raw --exclude /reference --exclude .git ./ mac:Developer/voice-memos/

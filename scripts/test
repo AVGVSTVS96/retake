@@ -1,5 +1,9 @@
-#!/bin/sh
-# Runs on the Mac. MemoKit tests on the host.
-set -e
-cd "$(dirname "$0")/../Packages/MemoKit"
-swift test 2>&1 | grep -E "error:|✘|✔ Test run|Test run with|failed|passed after" | grep -v "^\[" || true
+#!/bin/bash
+# Runs on the Mac. MemoKit tests on an iOS 27 simulator.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+source scripts/sim-lib
+id=$(ensure "iPhone 17 Pro" iPhone-17-Pro)
+cd Packages/MemoKit
+xcodebuild test -scheme MemoKit -destination "id=$id" -derivedDataPath ../../build/tests 2>&1 \
+  | grep -E "error:|✘|Test run with|TEST (SUCC|FAIL)" || true

@@ -33,8 +33,7 @@ final class TakeWriter: @unchecked Sendable {
     }
 
     func append(_ buffer: AVAudioPCMBuffer) {
-        guard let copy = buffer.copied() else { return }
-        queue.async { self.write(copy) }
+        queue.async { self.write(buffer) }
     }
 
     func finish() -> Result {
@@ -81,19 +80,5 @@ final class TakeWriter: @unchecked Sendable {
             return buffer
         }
         return error == nil ? output : nil
-    }
-}
-
-extension AVAudioPCMBuffer {
-    func copied() -> AVAudioPCMBuffer? {
-        guard let copy = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameLength) else { return nil }
-        copy.frameLength = frameLength
-        let source = UnsafeMutableAudioBufferListPointer(mutableAudioBufferList)
-        let target = UnsafeMutableAudioBufferListPointer(copy.mutableAudioBufferList)
-        for (from, to) in zip(source, target) {
-            guard let data = from.mData, let destination = to.mData else { continue }
-            memcpy(destination, data, Int(min(from.mDataByteSize, to.mDataByteSize)))
-        }
-        return copy
     }
 }

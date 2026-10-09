@@ -1,0 +1,42 @@
+#!/bin/bash
+# Runs on the Mac. Headless simulator screenshots of the demo library.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+source scripts/sim-lib
+
+DEVICES=("iPhone 18 Pro Max:iPhone-18-Pro-Max" "iPhone 17 Pro Max:iPhone-17-Pro-Max" "iPhone 15:iPhone-15"
+         "iPad Pro 11:iPad-Pro-11-inch-M5-12GB" "iPad Pro 13:iPad-Pro-13-inch-M5-12GB")
+
+boot() {
+  xcrun simctl bootstatus "$1" -b >/dev/null
+  xcrun simctl status_bar "$1" override --time 9:41 --batteryState charged --batteryLevel 100 --wifiBars 3 --cellularBars 4 >/dev/null 2>&1 || true
+  xcrun simctl privacy "$1" grant microphone "$BUNDLE" >/dev/null 2>&1 || true
+  xcrun simctl install "$1" "$APP"
+}
+
+shoot() {
+  local id=$1 appearance=$2 out=$3; shift 3
+  xcrun simctl ui "$id" appearance "$appearance"
+  xcrun simctl terminate "$id" "$BUNDLE" 2>/dev/null || true
+  xcrun simctl launch "$id" "$BUNDLE" -demo "$@" >/dev/null
+  sleep "${SETTLE:-3}"
+  mkdir -p "$(dirname "$out")"
+  xcrun simctl io "$id" screenshot "$out" >/dev/null 2>&1
+}
+
+all() {
+  local tag=$1; shift
+  for spec in "${DEVICES[@]}"; do
+    local name=${spec%%:*} id slug
+    [ -n "${ONLY:-}" ] && [[ "$name" != *$ONLY* ]] && continue
+    slug=$(echo "$name" | tr 'A-Z ' 'a-z-')
+    id=$(ensure "$name" "${spec##*:}")
+    boot "$id"
+    for appearance in ${APPEARANCES:-light dark}; do
+      shoot "$id" "$appearance" "shots/raw/$slug-$tag-$appearance.png" "$@"
+    done
+    [ -n "${KEEP:-}" ] || xcrun simctl shutdown "$id"
+  done
+}
+
+"$@"

@@ -34,8 +34,8 @@ final class ManualInput: AudioInput, @unchecked Sendable {
 }
 
 @MainActor
-func makeLibrary() -> Library {
-    Library(directory: FileManager.default.temporaryDirectory.appending(path: "memokit-\(UUID().uuidString)"))
+func makeLibrary(transcriber: Library.Transcribe? = nil) -> Library {
+    Library(directory: FileManager.default.temporaryDirectory.appending(path: "memokit-\(UUID().uuidString)"), transcriber: transcriber)
 }
 
 @MainActor
@@ -195,5 +195,26 @@ func makeLibrary() -> Library {
         for task in library.finalizing.values { await task.value }
         #expect(library.recordings.allSatisfy { $0.isFinalized })
         #expect(abs(try AudioFiles.duration(of: library.url(for: library.recording(recording.id)!)) - 6) < 0.03)
+    }
+}
+
+@MainActor
+@Suite struct DraftTests {
+    @Test func draftsChainAndSaveAsNew() async throws {
+        let library = makeLibrary()
+        let input = ManualInput()
+        let recorder = Recorder(library: library, input: input)
+        recorder.start()
+        input.feed(seconds: 6)
+        let recording = try #require(recorder.stop())
+        let original = try #require(library.draft(of: recording.id))
+        #expect(!original.isEdited)
+        let trimmed = try library.edit(original, keeping: [1..<5])
+        let cut = try library.edit(trimmed, keeping: [0..<1, 2..<4])
+        #expect(abs(cut.duration - 3) < 0.01)
+        #expect(!FileManager.default.fileExists(atPath: trimmed.url.path))
+        let copy = try #require(try library.saveAsNew(cut, from: recording.id))
+        #expect(abs(copy.duration - 3) < 0.01)
+        #expect(abs(library.recording(recording.id)!.duration - 6) < 0.01)
     }
 }

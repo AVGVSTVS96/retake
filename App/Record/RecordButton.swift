@@ -1,0 +1,42 @@
+import MemoKit
+import SwiftUI
+
+struct RecordButton: View {
+    @Environment(Recorder.self) private var recorder
+    @Environment(Player.self) private var player
+    @Environment(Session.self) private var session
+
+    var body: some View {
+        Button {
+            Task {
+                player.pause()
+                await recorder.record()
+                guard recorder.phase == .recording else { return }
+                session.expanded = nil
+                session.sheet = .recorder
+            }
+        } label: {
+            Circle()
+                .fill(Color.record)
+                .frame(width: Metrics.recordDot, height: Metrics.recordDot)
+                .padding(Metrics.recordRing)
+        }
+        .buttonStyle(RecordButtonStyle())
+        .glassEffect(.regular.interactive(), in: .circle)
+        .accessibilityLabel("Record")
+        .disabled(recorder.phase != .idle)
+        .alert("Microphone Access", isPresented: Binding(get: { recorder.error == .permissionDenied }, set: { _ in recorder.dismissError() })) {
+            Button("OK") {}
+        } message: {
+            Text("Allow microphone access in Settings to record voice memos.")
+        }
+    }
+}
+
+private struct RecordButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.9 : 1)
+            .animation(.spring(duration: 0.3, bounce: 0.4), value: configuration.isPressed)
+    }
+}
