@@ -1,0 +1,5 @@
+#!/bin/sh
+# Runs on the Mac. MemoKit tests on the host.
+set -e
+cd "$(dirname "$0")/../Packages/MemoKit"
+swift test 2>&1 | grep -E "error:|✘|✔ Test run|Test run with|failed|passed after" | grep -v "^\[" || true
