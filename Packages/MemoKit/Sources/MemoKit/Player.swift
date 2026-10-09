@@ -79,7 +79,7 @@ public final class Player {
             return
         }
         scheduleFrom(restingTime)
-        node.play()
+        guard (try? node.playAudio()) != nil else { return }
         isPlaying = true
     }
 
@@ -121,14 +121,11 @@ public final class Player {
     private func connect() {
         guard let file else { return }
         let format = file.processingFormat
-        engine.disconnectNodeOutput(node)
-        engine.disconnectNodeOutput(pitch)
-        engine.disconnectNodeOutput(eq)
-        engine.disconnectNodeOutput(dynamics)
-        engine.connect(node, to: pitch, format: format)
-        engine.connect(pitch, to: eq, format: format)
-        engine.connect(eq, to: dynamics, format: format)
-        engine.connect(dynamics, to: engine.mainMixerNode, format: format)
+        let chain: [AVAudioNode] = [node, pitch, eq, dynamics, engine.mainMixerNode]
+        for (from, to) in zip(chain, chain.dropFirst()) {
+            engine.disconnectNodeOutput(from)
+            try? engine.connectNode(from, to: to, format: format)
+        }
         engine.prepare()
     }
 
@@ -149,11 +146,17 @@ public final class Player {
         bands[2].filterType = .lowPass
         bands[2].frequency = 12_000
         bands.forEach { $0.bypass = false }
-        let unit = dynamics.audioUnit
-        AudioUnitSetParameter(unit, kDynamicsProcessorParam_ExpansionThreshold, kAudioUnitScope_Global, 0, -42, 0)
-        AudioUnitSetParameter(unit, kDynamicsProcessorParam_ExpansionRatio, kAudioUnitScope_Global, 0, 4, 0)
-        AudioUnitSetParameter(unit, kDynamicsProcessorParam_Threshold, kAudioUnitScope_Global, 0, -18, 0)
-        AudioUnitSetParameter(unit, kDynamicsProcessorParam_OverallGain, kAudioUnitScope_Global, 0, 4, 0)
+        dynamics.withAudioUnit { unit in
+            let parameters: [(AudioUnitParameterID, AudioUnitParameterValue)] = [
+                (kDynamicsProcessorParam_ExpansionThreshold, -42),
+                (kDynamicsProcessorParam_ExpansionRatio, 4),
+                (kDynamicsProcessorParam_Threshold, -18),
+                (kDynamicsProcessorParam_OverallGain, 4),
+            ]
+            for (id, value) in parameters {
+                AudioUnitSetParameter(unit, id, kAudioUnitScope_Global, 0, value, 0)
+            }
+        }
     }
 
     private func scheduleFrom(_ time: TimeInterval) {

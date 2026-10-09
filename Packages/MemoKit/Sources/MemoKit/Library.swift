@@ -6,18 +6,24 @@ public final class Library {
     public private(set) var recordings: [Recording] = []
     public private(set) var folders: [Folder] = []
     public private(set) var peaks: [Recording.ID: [Float]] = [:]
+    public private(set) var transcribing: Set<Recording.ID> = []
     public var quality: AudioQuality = .lossy
 
     public let directory: URL
     @ObservationIgnored public private(set) var finalizing: [Recording.ID: Task<Void, Never>] = [:]
+    @ObservationIgnored private(set) var transcriptions: [Recording.ID: Task<Void, Never>] = [:]
+    @ObservationIgnored private let transcriber: Transcribe?
+
+    public typealias Transcribe = @Sendable (URL) async throws -> Transcript
 
     private struct Index: Codable {
         var recordings: [Recording]
         var folders: [Folder]
     }
 
-    public init(directory: URL) {
+    public init(directory: URL, transcriber: Transcribe? = { try await Transcriber.transcribe(url: $0, locale: .current) }) {
         self.directory = directory
+        self.transcriber = transcriber
         try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         if let data = try? Data(contentsOf: indexURL), let index = try? JSONDecoder().decode(Index.self, from: data) {
             recordings = index.recordings
@@ -31,6 +37,7 @@ public final class Library {
         recordings.sort { $0.created > $1.created }
         save()
         recordings.filter { !$0.isFinalized }.forEach(finalize)
+        recordings.forEach { transcribe($0) }
     }
 
     public static func standard() -> Library {
@@ -62,12 +69,13 @@ public final class Library {
         return (2...).lazy.map { "\(base) \($0)" }.first { !taken.contains($0) }!
     }
 
-    func insert(_ recording: Recording, peaks: [Float]) {
+    func insert(_ recording: Recording, peaks: [Float], live: LiveTranscriber? = nil) {
         Peaks.write(peaks, to: peaksURL(for: recording.id))
         self.peaks[recording.id] = peaks
         recordings.insert(recording, at: recordings.firstIndex { $0.created < recording.created } ?? recordings.endIndex)
         save()
         finalize(recording)
+        transcribe(recording, live: live)
     }
 
     public func update(_ id: Recording.ID, _ change: (inout Recording) -> Void) {
@@ -82,13 +90,17 @@ public final class Library {
         try FileManager.default.moveItem(at: file, to: directory.appending(path: name))
         Peaks.write(peaks, to: peaksURL(for: id))
         self.peaks[id] = peaks
+        cancelTranscription(of: id)
         update(id) {
             $0.file = name
             $0.duration = duration
             $0.transcript = nil
         }
         try? FileManager.default.removeItem(at: url(for: old))
-        if let updated = recording(id) { finalize(updated) }
+        if let updated = recording(id) {
+            finalize(updated)
+            transcribe(updated)
+        }
     }
 
     public func trim(_ id: Recording.ID, to range: Range<TimeInterval>, asNew: Bool = false) throws {
@@ -117,6 +129,15 @@ public final class Library {
         copy.folder = source.folder
         try FileManager.default.moveItem(at: temporary, to: url(for: copy))
         insert(copy, peaks: kept)
+    }
+
+    @discardableResult
+    public func importAudio(from source: URL, title: String? = nil, created: Date = .now) throws -> Recording {
+        var recording = Recording(title: title ?? nextTitle(), created: created, duration: try AudioFiles.duration(of: source), file: "")
+        recording.file = "\(recording.id.uuidString).\(source.pathExtension.lowercased())"
+        try FileManager.default.copyItem(at: source, to: url(for: recording))
+        insert(recording, peaks: try Peaks.compute(from: url(for: recording)))
+        return recording
     }
 
     public func duplicate(_ id: Recording.ID) throws {
@@ -155,6 +176,7 @@ public final class Library {
             try? FileManager.default.removeItem(at: url(for: recording))
             try? FileManager.default.removeItem(at: peaksURL(for: recording.id))
             peaks[recording.id] = nil
+            cancelTranscription(of: recording.id)
         }
         recordings.removeAll { ids.contains($0.id) }
         save()
@@ -234,6 +256,31 @@ public final class Library {
             update(recording.id) { $0.file = target.lastPathComponent }
             try? FileManager.default.removeItem(at: source)
         }
+    }
+
+    private func transcribe(_ recording: Recording, live: LiveTranscriber? = nil) {
+        let id = recording.id
+        guard recording.transcript == nil, transcriptions[id] == nil, live != nil || transcriber != nil else { return }
+        let transcriber = transcriber
+        transcribing.insert(id)
+        transcriptions[id] = Task {
+            var transcript = await live?.finish()
+            if transcript == nil, let transcriber {
+                await finalizing[id]?.value
+                if let current = self.recording(id) {
+                    transcript = try? await transcriber(url(for: current))
+                }
+            }
+            guard !Task.isCancelled else { return }
+            transcriptions[id] = nil
+            transcribing.remove(id)
+            if let transcript { update(id) { $0.transcript = transcript } }
+        }
+    }
+
+    private func cancelTranscription(of id: Recording.ID) {
+        transcriptions.removeValue(forKey: id)?.cancel()
+        transcribing.remove(id)
     }
 }
 

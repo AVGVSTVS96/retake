@@ -44,7 +44,7 @@ public final class MicInput: AudioInput, @unchecked Sendable {
         input.removeTap(onBus: 0)
         let format = input.outputFormat(forBus: 0)
         guard format.sampleRate > 0, format.channelCount > 0, let sink else { throw RecorderError.noMicrophone }
-        input.installTap(onBus: 0, bufferSize: 2048, format: format) { buffer, _ in sink(buffer) }
+        try input.installAudioTap(onBus: 0, bufferSize: 2048, format: format) { buffer, _ in sink(AVAudioPCMBuffer(copying: buffer)) }
         engine.prepare()
         try engine.start()
     }
@@ -64,10 +64,10 @@ public final class SyntheticInput: AudioInput, @unchecked Sendable {
         let format = AVAudioFormat(standardFormatWithSampleRate: 48_000, channels: 1)!
         if source.engine == nil {
             engine.attach(source)
-            engine.connect(source, to: engine.mainMixerNode, format: format)
+            try engine.connectNode(source, to: engine.mainMixerNode, format: format)
             engine.mainMixerNode.outputVolume = 0
         }
-        source.installTap(onBus: 0, bufferSize: 2048, format: format) { buffer, _ in sink(buffer) }
+        try source.installAudioTap(onBus: 0, bufferSize: 2048, format: format) { buffer, _ in sink(AVAudioPCMBuffer(copying: buffer)) }
         engine.prepare()
         try engine.start()
     }
@@ -78,14 +78,14 @@ public final class SyntheticInput: AudioInput, @unchecked Sendable {
     }
 }
 
-final class SyntheticVoice: @unchecked Sendable {
+public final class SyntheticVoice: @unchecked Sendable {
     private var state: UInt64
     private var remaining = 0
     private var amplitude: Float = 0
     private var target: Float = 0
     private var low: Float = 0
 
-    init(seed: UInt64) {
+    public init(seed: UInt64) {
         state = seed
     }
 
@@ -95,6 +95,20 @@ final class SyntheticVoice: @unchecked Sendable {
         z = (z ^ (z >> 30)) &* 0xBF58_476D_1CE4_E5B9
         z = (z ^ (z >> 27)) &* 0x94D0_49BB_1331_11EB
         return Float(z ^ (z >> 31)) / Float(UInt64.max)
+    }
+
+    public func write(seconds: TimeInterval, to url: URL) throws {
+        let format = AVAudioFormat(standardFormatWithSampleRate: 48_000, channels: 1)!
+        let file = try AVAudioFile(forWriting: url, settings: AudioFiles.takeSettings(sampleRate: 48_000, channels: 1), commonFormat: .pcmFormatFloat32, interleaved: false)
+        let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 4800)!
+        var remaining = Int(seconds * 48_000)
+        while remaining > 0 {
+            buffer.frameLength = AVAudioFrameCount(min(4800, remaining))
+            render(buffer.frameLength, into: UnsafeMutableAudioBufferListPointer(buffer.mutableAudioBufferList))
+            try file.write(from: buffer)
+            remaining -= Int(buffer.frameLength)
+        }
+        file.close()
     }
 
     func render(_ frames: UInt32, into buffers: UnsafeMutableAudioBufferListPointer) {
@@ -108,7 +122,7 @@ final class SyntheticVoice: @unchecked Sendable {
             remaining -= 1
             amplitude += (target - amplitude) * 0.0025
             low += ((next() * 2 - 1) - low) * 0.18
-            samples[frame] = low * amplitude * 2.4
+            samples[frame] = low * amplitude * 1.6
         }
     }
 }

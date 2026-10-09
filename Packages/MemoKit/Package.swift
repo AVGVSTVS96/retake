@@ -3,7 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "MemoKit",
-    platforms: [.iOS("27.0"), .macOS("26.0")],
+    platforms: [.iOS("27.0")],
     products: [.library(name: "MemoKit", targets: ["MemoKit"])],
     targets: [
         .target(name: "MemoKit"),

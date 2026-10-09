@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>PreferenceSpecifiers</key>
+	<array>
+		<dict>
+			<key>Type</key>
+			<string>PSGroupSpecifier</string>
+			<key>Title</key>
+			<string>Voice Memos Settings</string>
+		</dict>
+		<dict>
+			<key>Type</key>
+			<string>PSMultiValueSpecifier</string>
+			<key>Title</key>
+			<string>Clear Deleted</string>
+			<key>Key</key>
+			<string>clearDeleted</string>
+			<key>DefaultValue</key>
+			<integer>30</integer>
+			<key>Titles</key>
+			<array>
+				<string>Never</string>
+				<string>Immediately</string>
+				<string>After 1 Day</string>
+				<string>After 7 Days</string>
+				<string>After 30 Days</string>
+			</array>
+			<key>Values</key>
+			<array>
+				<integer>-1</integer>
+				<integer>0</integer>
+				<integer>1</integer>
+				<integer>7</integer>
+				<integer>30</integer>
+			</array>
+		</dict>
+		<dict>
+			<key>Type</key>
+			<string>PSMultiValueSpecifier</string>
+			<key>Title</key>
+			<string>Audio Quality</string>
+			<key>Key</key>
+			<string>audioQuality</string>
+			<key>DefaultValue</key>
+			<string>lossy</string>
+			<key>Titles</key>
+			<array>
+				<string>Compressed</string>
+				<string>Lossless</string>
+			</array>
+			<key>Values</key>
+			<array>
+				<string>lossy</string>
+				<string>lossless</string>
+			</array>
+		</dict>
+		<dict>
+			<key>Type</key>
+			<string>PSToggleSwitchSpecifier</string>
+			<key>Title</key>
+			<string>Location-based Naming</string>
+			<key>Key</key>
+			<string>locationNaming</string>
+			<key>DefaultValue</key>
+			<false/>
+		</dict>
+	</array>
+</dict>
+</plist>

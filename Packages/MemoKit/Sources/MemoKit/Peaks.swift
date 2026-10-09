@@ -5,7 +5,8 @@ public enum Peaks {
 
     public static func level(_ peak: Float) -> Float {
         guard peak > 0 else { return 0 }
-        return min(1, max(0, (20 * log10(peak) + 50) / 50))
+        let linear = min(1, max(0, (20 * log10(peak) + 55) / 55))
+        return linear * linear
     }
 
     static func read(from url: URL) -> [Float] {
