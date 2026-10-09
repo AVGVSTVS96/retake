@@ -3,6 +3,6 @@
 set -e
 cd "$(dirname "$0")/.."
 xcodegen generate -q
-xcodebuild -project VoiceMemos.xcodeproj -scheme Memos -sdk iphonesimulator -configuration Debug \
+xcodebuild -project Retake.xcodeproj -scheme Retake -sdk iphonesimulator -configuration Debug \
   -derivedDataPath build -quiet build 2>&1 | grep -E "error|warning: " | grep -v "appintentsmetadataprocessor" || true
-test -d build/Build/Products/Debug-iphonesimulator/Memos.app
+test -d build/Build/Products/Debug-iphonesimulator/Retake.app

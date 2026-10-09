@@ -40,7 +40,7 @@ Not yet: layered recordings, Spatial Audio capture and Studio Sound (they need i
 ```sh
 brew install xcodegen
 xcodegen generate
-open VoiceMemos.xcodeproj
+open Retake.xcodeproj
 ```
 
 Xcode 27 builds for iPhone and iPad; the iPhone Duo simulator needs Xcode 27.1.

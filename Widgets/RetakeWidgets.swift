@@ -4,7 +4,7 @@ import SwiftUI
 import WidgetKit
 
 @main
-struct MemosWidgets: WidgetBundle {
+struct RetakeWidgets: WidgetBundle {
     var body: some Widget {
         RecordingLiveActivity()
         RecordControl()
@@ -13,7 +13,7 @@ struct MemosWidgets: WidgetBundle {
 
 struct RecordControl: ControlWidget {
     var body: some ControlWidgetConfiguration {
-        StaticControlConfiguration(kind: "com.shahidy.memos.record") {
+        StaticControlConfiguration(kind: "com.shahidy.retake.record") {
             ControlWidgetButton(action: RecordVoiceMemoIntent()) {
                 Label("Voice Memo", systemImage: "waveform")
             }

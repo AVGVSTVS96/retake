@@ -2,7 +2,7 @@ import MemoKit
 import SwiftUI
 
 @main
-struct MemosApp: App {
+struct RetakeApp: App {
     private let model = Model.shared
     @State private var activity = RecordingActivityController()
 

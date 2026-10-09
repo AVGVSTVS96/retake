@@ -134,7 +134,7 @@ struct TranscriptView: View {
                 transcript.segments.indices.reduce(Text("")) { text, index in
                     let segment = transcript.segments[index]
                     let word = Text(segment.text + " ")
-                    return text + (index == current ? word.foregroundStyle(.primary).fontWeight(.semibold) : word.foregroundStyle(.secondary))
+                    return Text("\(text)\(index == current ? word.foregroundStyle(.primary).fontWeight(.semibold) : word.foregroundStyle(.secondary))")
                 }
                 .font(.title2)
                 .frame(maxWidth: .infinity, alignment: .leading)

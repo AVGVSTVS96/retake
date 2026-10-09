@@ -16,8 +16,8 @@ for test in ${TESTS:-testRecordStopRecordAgain testExpandSheetPauseResumeDone te
   xcrun simctl io "$id" recordVideo --codec h264 --force "$out" >/dev/null 2>&1 &
   recorder=$!
   sleep 1
-  xcodebuild test -project VoiceMemos.xcodeproj -scheme Memos -destination "id=$id" -derivedDataPath build \
-    -only-testing:"MemosUITests/FlowTests/$test" 2>&1 | grep -E "error:|Test Case.*(passed|failed)|TEST (SUCC|FAIL)" || true
+  xcodebuild test -project Retake.xcodeproj -scheme Retake -destination "id=$id" -derivedDataPath build \
+    -only-testing:"RetakeUITests/FlowTests/$test" 2>&1 | grep -E "error:|Test Case.*(passed|failed)|TEST (SUCC|FAIL)" || true
   kill -INT $recorder
   wait $recorder 2>/dev/null || true
 done

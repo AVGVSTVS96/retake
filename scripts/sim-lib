@@ -1,6 +1,6 @@
 RUNTIME=${RUNTIME:-com.apple.CoreSimulator.SimRuntime.iOS-27-0}
-APP=build/Build/Products/Debug-iphonesimulator/Memos.app
-BUNDLE=com.shahidy.memos
+APP=build/Build/Products/Debug-iphonesimulator/Retake.app
+BUNDLE=com.shahidy.retake
 
 udid() {
   xcrun simctl list devices -j | /usr/bin/python3 -c "
