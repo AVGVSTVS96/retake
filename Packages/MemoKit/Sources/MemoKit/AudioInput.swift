@@ -9,6 +9,7 @@ public enum RecorderError: Error, Equatable {
     case permissionDenied
     case noMicrophone
     case failedToStart
+    case failedToSave
 }
 
 public final class MicInput: AudioInput, @unchecked Sendable {

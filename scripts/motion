@@ -1,0 +1,23 @@
+#!/bin/bash
+# Runs on the Mac. Drives the app with UI tests while recording the simulator screen.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+source scripts/sim-lib
+name=${DEVICE:-iPhone 18 Pro Max}
+id=$(ensure "$name" "${TYPE:-iPhone-18-Pro-Max}")
+xcrun simctl bootstatus "$id" -b >/dev/null
+xcrun simctl status_bar "$id" override --time 9:41 --batteryState charged --batteryLevel 100 >/dev/null 2>&1 || true
+xcrun simctl privacy "$id" grant microphone "$BUNDLE" >/dev/null 2>&1 || true
+xcrun simctl ui "$id" appearance "${APPEARANCE:-light}"
+mkdir -p shots/motion
+for test in ${TESTS:-testRecordStopRecordAgain testExpandSheetPauseResumeDone testRowToPlayerAndOptions}; do
+  out=shots/motion/$test.mov
+  rm -f "$out"
+  xcrun simctl io "$id" recordVideo --codec h264 --force "$out" >/dev/null 2>&1 &
+  recorder=$!
+  sleep 1
+  xcodebuild test -project VoiceMemos.xcodeproj -scheme Memos -destination "id=$id" -derivedDataPath build \
+    -only-testing:"MemosUITests/FlowTests/$test" 2>&1 | grep -E "error:|Test Case.*(passed|failed)|TEST (SUCC|FAIL)" || true
+  kill -INT $recorder
+  wait $recorder 2>/dev/null || true
+done

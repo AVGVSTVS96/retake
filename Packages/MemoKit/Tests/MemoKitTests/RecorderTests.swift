@@ -218,3 +218,31 @@ func makeLibrary(transcriber: Library.Transcribe? = nil) -> Library {
         #expect(abs(library.recording(recording.id)!.duration - 6) < 0.01)
     }
 }
+
+@MainActor
+@Suite struct ReplaceTests {
+    @Test func replaceOverwritesFromPlayheadAndCanExtend() async throws {
+        let library = makeLibrary()
+        let input = ManualInput()
+        let recorder = Recorder(library: library, input: input)
+        recorder.start()
+        input.feed(seconds: 4)
+        let recording = try #require(recorder.stop())
+        for task in library.finalizing.values { await task.value }
+
+        recorder.start(replacing: recording.id, at: 1)
+        #expect(recorder.take?.title == recording.title)
+        input.feed(seconds: 2)
+        #expect(recorder.stop()?.id == recording.id)
+        #expect(abs(library.recording(recording.id)!.duration - 4) < 0.01)
+        #expect(library.recordings.count == 1)
+
+        recorder.start(replacing: recording.id, at: 3)
+        input.feed(seconds: 3)
+        recorder.stop()
+        #expect(abs(library.recording(recording.id)!.duration - 6) < 0.01)
+        #expect(library.peaks[recording.id]!.count == 300)
+        for task in library.finalizing.values { await task.value }
+        #expect(abs(try AudioFiles.duration(of: library.url(for: library.recording(recording.id)!)) - 6) < 0.03)
+    }
+}

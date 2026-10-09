@@ -8,13 +8,8 @@ struct RecordButton: View {
 
     var body: some View {
         Button {
-            Task {
-                player.pause()
-                await recorder.record()
-                guard recorder.phase == .recording else { return }
-                session.expanded = nil
-                session.sheet = .recorder
-            }
+            player.pause()
+            Task { await recorder.record() }
         } label: {
             Circle()
                 .fill(Color.record)

@@ -41,6 +41,28 @@ extension Library {
     }
 }
 
+extension Library {
+    func replace(_ id: Recording.ID, at time: TimeInterval, with take: URL, duration: TimeInterval, peaks takePeaks: [Float]) throws {
+        guard let recording = recording(id) else { return }
+        let original = url(for: recording)
+        let end = time + duration
+        let target = directory.appending(path: "\(UUID().uuidString).edit.caf")
+        let total = try AudioFiles.render([(original, 0..<time), (take, 0..<duration), (original, end..<max(end, recording.duration))].filter { !$0.1.isEmpty }, to: target)
+        let bins = peaks[id] ?? []
+        let merged = Peaks.slice(bins, keeping: [0..<time]) + takePeaks + Peaks.slice(bins, keeping: [end..<max(end, recording.duration)])
+        try FileManager.default.removeItem(at: take)
+        try replaceAudio(of: id, with: target, duration: total, peaks: merged)
+    }
+}
+
+extension Library {
+    func recoverTake(_ url: URL, title: String) {
+        guard let duration = try? AudioFiles.duration(of: url), duration > 0 else { return }
+        let recording = Recording(title: nextTitle(base: "\(title) copy"), created: .now, duration: duration, file: url.lastPathComponent)
+        insert(recording, peaks: (try? Peaks.compute(from: url)) ?? [])
+    }
+}
+
 extension Peaks {
     static func slice(_ bins: [Float], keeping ranges: [Range<TimeInterval>]) -> [Float] {
         ranges.flatMap { range in
