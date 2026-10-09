@@ -74,6 +74,7 @@ struct FullRecorder: View {
                                 duration: isRecording ? live.duration : (recording?.duration ?? 0),
                                 time: time,
                                 style: recorder.phase == .recording && isRecording ? .recording : .playback,
+                                replaced: isReplacing ? recorder.replacing.map { $0.at..<live.time } : nil,
                                 onSeek: isRecording ? nil : { player.seek(to: $0) }
                             )
                             .transition(.opacity)
@@ -222,6 +223,7 @@ struct WaveformPanel: View {
     let time: TimeInterval
     let style: Style
     var selection: ClosedRange<TimeInterval>?
+    var replaced: Range<TimeInterval>?
     var onSeek: ((TimeInterval) -> Void)?
     @State private var scrub: (start: TimeInterval, time: TimeInterval)?
     static let pointsPerSecond: CGFloat = 92
@@ -264,7 +266,8 @@ struct WaveformPanel: View {
                         unplayed: Color(.label),
                         barWidth: 2,
                         spacing: 2,
-                        hidesFuture: style == .recording
+                        hidesFuture: style == .recording && replaced == nil,
+                        highlight: replaced.map { ($0, Color.record) }
                     )
                     .padding(.vertical, 56)
                     Playhead(tint: tint)

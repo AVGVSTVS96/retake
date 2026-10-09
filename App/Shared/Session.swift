@@ -26,6 +26,7 @@ final class Session {
     var transcript: Recording.ID?
     var renaming: Recording.ID?
     var editing: Recording.ID?
+    var query = ""
 }
 
 extension Library {

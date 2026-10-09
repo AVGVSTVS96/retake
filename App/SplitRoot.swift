@@ -9,6 +9,7 @@ struct SplitRoot: View {
     @State private var columns = NavigationSplitViewVisibility.doubleColumn
 
     var body: some View {
+        @Bindable var session = session
         NavigationSplitView(columnVisibility: $columns) {
             FoldersView(selection: $scope)
                 .listStyle(.sidebar)
@@ -18,6 +19,7 @@ struct SplitRoot: View {
                 .navigationSplitViewColumnWidth(min: 280, ideal: 320, max: 400)
         } detail: {
             DetailPane()
+                .searchable(text: $session.query, placement: .toolbar, prompt: Text(library.recordings.contains { $0.transcript != nil } ? "Titles, Transcripts" : "Search"))
         }
         .navigationSplitViewStyle(.balanced)
         .task {

@@ -15,6 +15,7 @@ struct RecordingsList: View {
 
     private var recordings: [Recording] {
         let all = library.recordings(in: scope)
+        let query = isSplit ? session.query : query
         guard !query.isEmpty else { return all }
         return all.filter { $0.title.localizedStandardContains(query) || ($0.transcript?.text.localizedStandardContains(query) ?? false) }
     }
@@ -44,7 +45,7 @@ struct RecordingsList: View {
             }
         }
         .overlay {
-            if recordings.isEmpty, query.isEmpty {
+            if recordings.isEmpty, query.isEmpty, session.query.isEmpty {
                 ContentUnavailableView {
                     Label("No Recordings", systemImage: "folder")
                 } description: {
@@ -66,9 +67,11 @@ struct RecordingsList: View {
                 .fontWeight(editMode.isEditing ? .semibold : .regular)
                 .disabled(recordings.isEmpty && !editMode.isEditing)
             }
-            ToolbarSpacer(.fixed, placement: .topBarTrailing)
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("Search", systemImage: "magnifyingglass") { isSearching = true }
+            if !isSplit {
+                ToolbarSpacer(.fixed, placement: .topBarTrailing)
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Search", systemImage: "magnifyingglass") { isSearching = true }
+                }
             }
             if editMode.isEditing {
                 SelectionToolbar(scope: scope, selection: $selection, recordings: recordings) {

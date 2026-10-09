@@ -11,6 +11,7 @@ struct WaveformBars: View {
     var barWidth: CGFloat = 2
     var spacing: CGFloat = 1.5
     var hidesFuture = false
+    var highlight: (range: Range<TimeInterval>, color: Color)?
 
     var body: some View {
         Canvas { context, size in
@@ -29,7 +30,8 @@ struct WaveformBars: View {
                 if hidesFuture, !isPast { continue }
                 let height = max(1, CGFloat(level) * size.height * 0.96)
                 let rect = CGRect(x: x, y: mid - height / 2, width: barWidth, height: height)
-                context.fill(Path(roundedRect: rect, cornerRadius: barWidth / 2), with: .color(isPast ? played : unplayed))
+                let color = highlight.map { $0.range.contains(start) ? $0.color : unplayed } ?? (isPast ? played : unplayed)
+                context.fill(Path(roundedRect: rect, cornerRadius: barWidth / 2), with: .color(color))
             }
         }
     }
