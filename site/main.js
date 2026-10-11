@@ -127,6 +127,7 @@ function stopTiming() {
 
   const show = (t) => {
     lanes.style.setProperty("--t", t)
+    lanes.classList.toggle("done", t >= end)
     for (const b of blocks) b.el.style.setProperty("--shown", `${Math.max(0, Math.min(1, (t - b.from) / (b.to - b.from))) * 100}%`)
     for (const r of rows) r.el.style.setProperty("--row", t >= r.at ? 1 : 0)
   }
@@ -195,7 +196,7 @@ function ledger() {
   const read = (i) => {
     const t = takes[i]
     readout.querySelector(".title").textContent = t.title
-    readout.querySelector(".len").textContent = `${t.ms} ms${t.paused ? ", paused and resumed once" : ""}`
+    readout.querySelector(".len").textContent = `${t.ms} ms long${t.paused ? ", paused and resumed once" : ""}`
   }
   read(count - 1)
 

@@ -82,8 +82,8 @@
       <div class="lane" data-lane="apple">
         <span class="lane-name">Voice Memos</span>
         <div class="track">
-          <span class="block wait" style="--from:0;--to:330">saving, nothing moves · ~330 ms</span>
-          <span class="block collapse" style="--from:330;--to:545">collapse · ~215 ms</span>
+          <span class="block wait" style="--from:0;--to:330"><span class="long">saving, nothing moves ·&nbsp;</span>~330 ms</span>
+          <span class="block collapse" style="--from:330;--to:545"><span class="long">collapse ·&nbsp;</span>~215 ms</span>
           <span class="row-in" style="--at:545">New Recording</span>
         </div>
       </div>
@@ -145,7 +145,7 @@
   </div>
   <div class="ledger">
     <canvas aria-label="300 bars, one per take the test records. Each bar's height is that take's length, 50 to 130 milliseconds."></canvas>
-    <div class="ledger-read" aria-live="polite"><span class="title">New Recording</span><span class="len">50 ms</span></div>
+    <div class="ledger-read" aria-live="polite"><span class="title">New Recording</span><span class="len">70 ms long</span></div>
     <div class="ledger-ends" aria-hidden="true"><span>New Recording</span><span>New Recording 300</span></div>
   </div>
 </section>
@@ -211,19 +211,19 @@
     <p>The iPad gets the split view. The Duo gets both screens, closed and open.</p>
   </div>
   <div class="device-row">
-    <figure class="tablet duo-open">
-      <picture>
-        <source srcset="/media/iphone-duo-2-open-list-dark.webp" media="(prefers-color-scheme: dark)">
-        <img src="/media/iphone-duo-2-open-list-light.webp" alt="retake on iPhone Duo, open: the list beside the player" width="1600" height="1126" loading="lazy">
-      </picture>
-      <figcaption>iPhone Duo, open</figcaption>
-    </figure>
     <figure class="tablet ipad">
       <picture>
         <source srcset="/media/ipad-pro-13-list-dark.webp" media="(prefers-color-scheme: dark)">
         <img src="/media/ipad-pro-13-list-light.webp" alt="retake on iPad Pro 13-inch in split view" width="1200" height="1600" loading="lazy">
       </picture>
       <figcaption>iPad Pro 13″</figcaption>
+    </figure>
+    <figure class="tablet duo-open">
+      <picture>
+        <source srcset="/media/iphone-duo-2-open-list-dark.webp" media="(prefers-color-scheme: dark)">
+        <img src="/media/iphone-duo-2-open-list-light.webp" alt="retake on iPhone Duo, open: the list beside the player" width="1600" height="1126" loading="lazy">
+      </picture>
+      <figcaption>iPhone Duo, open</figcaption>
     </figure>
     <figure class="phone duo-cover">
       <img src="/media/iphone-duo-1-list-light.webp" alt="retake on the iPhone Duo cover screen" width="640" height="931" loading="lazy">
@@ -268,7 +268,7 @@ open Retake.xcodeproj</code></pre>
 <footer class="foot">
   <ol class="notes">
     <li id="n1">Voice Memos timing from iOS 26's screen recording, frame-counted at 60 fps. iOS 27's footage shows the same collapse after Done.</li>
-    <li id="n2">Within 30 ms, after compression to AAC.</li>
+    <li id="n2">Each file's length is within 30 ms of what was recorded, checked after compression to AAC.</li>
     <li id="n3">Card rise in iOS 27: ~280 ms from touch to settle, measured from 60 fps footage.</li>
   </ol>
   <p class="legal"><span>retake · MIT · by <a href="https://x.com/AVGVSTVS96">bassim</a></span> <span>Not affiliated with Apple. Voice Memos is a trademark of Apple Inc.</span></p>
