@@ -1,0 +1,16 @@
+@import "../../site/style.css";
+
+html, body { margin: 0; overflow: hidden; }
+html.dark { color-scheme: dark; }
+html.light { color-scheme: light; }
+body { width: var(--w); height: var(--h); position: relative; }
+
+.card { position: absolute; inset: 0; padding: var(--pad, 64px); background: var(--paper); overflow: hidden; }
+.card .lockup { height: var(--lockup, 40px); width: auto; display: block; }
+.card h1 { font-size: var(--size, 68px); line-height: 1; letter-spacing: -0.045em; }
+.card .phone { position: absolute; container-type: inline-size; }
+.card .phone img { width: 100%; }
+.card .small { font: 500 22px/1.3 var(--text); color: var(--ink-3); }
+html.clear, html.clear body { background: transparent; }
+.x h1 { font-size: 64px; letter-spacing: -0.04em; }
+.x .foot-note { position: absolute; left: 72px; bottom: 56px; font: 400 18px/1.4 var(--text); color: var(--ink-3); }

@@ -1,0 +1,35 @@
+<!doctype html><html class="light"><meta charset="utf-8"><link rel="stylesheet" href="base.css">
+<style>
+body { --w: 1600px; --h: 900px; }
+.card { padding: 72px; }
+.top { display: flex; justify-content: space-between; align-items: center; }
+.lockup { height: 30px; }
+h1 { margin-top: 96px; }
+.timing { margin-top: 56px; padding: 40px; }
+.timing-controls { display: none; }
+.lanes { padding-left: 160px; gap: 20px; }
+.lane-name { left: -160px; font-size: 20px; height: 64px; }
+.track, .block { height: 64px; }
+.block { font-size: 18px; padding: 0 18px; }
+.row-in { font-size: 18px; padding: 10px 14px; }
+.ms-ruler { font-size: 15px; padding-top: 10px; }
+.sweep { left: 160px; }
+</style>
+<body><div class="card x">
+<div class="top"><img class="lockup" src="../logo/lockup.svg" alt=""></div>
+<h1>Stop is instant.</h1>
+<div class="timing">
+  <div class="lanes">
+    <div class="lane"><span class="lane-name">Voice Memos</span><div class="track">
+      <span class="block wait" style="--from:0;--to:330">saving, nothing moves · ~330 ms</span>
+      <span class="block collapse" style="--from:330;--to:545">collapse · ~215 ms</span>
+      <span class="row-in" style="--at:545;left:auto;right:0;translate:0 -50%">New Recording</span></div></div>
+    <div class="lane" data-lane="retake"><span class="lane-name">retake</span><div class="track">
+      <span class="block collapse ours" style="--from:0;--to:190">collapse, no wait</span>
+      <span class="row-in" style="--at:150">New Recording</span></div></div>
+    <div class="ms-ruler"><span>stop</span><span>100</span><span>200</span><span>300</span><span>400</span><span>500</span><span>600 ms</span></div>
+    <div class="sweep"></div>
+  </div>
+</div>
+<p class="foot-note">Voice Memos timing from iOS 26's screen recording, frame-counted at 60 fps. iOS 27 collapses the same way after Done.</p>
+</div>
