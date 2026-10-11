@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>retake · Voice Memos, rebuilt. It never loses a take.</title>
+<meta name="description" content="Apple's iOS 27 Voice Memos, rebuilt in SwiftUI with the same screens, gestures and animations. Open source, MIT. Every take hits the disk as you record, and stop is instant.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="retake · Voice Memos, rebuilt">
+<meta property="og:description" content="Apple's iOS 27 Voice Memos, rebuilt in SwiftUI, open source. It never loses a take.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="%VITE_SITE_URL%">
+<meta property="og:image" content="%VITE_SITE_URL%/og.png?v=1">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="retake, Apple's Voice Memos rebuilt in SwiftUI, next to its recording screen with a red waveform.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="%VITE_SITE_URL%/og.png?v=1">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+<header class="bar">
+  <a href="/" class="lockup" aria-label="retake">
+    <picture>
+      <source srcset="../brand/logo/lockup-dark.svg" media="(prefers-color-scheme: dark)">
+      <img src="../brand/logo/lockup.svg" alt="retake" width="140" height="29">
+    </picture>
+  </a>
+  <a class="bar-link" href="https://github.com/AVGVSTVS96/retake">GitHub <span aria-hidden="true">↗</span></a>
+</header>
+
+<main>
+
+<section class="hero">
+  <div class="hero-copy">
+    <h1>Voice Memos, rebuilt.<br> <span class="trim">It never loses a take.</span></h1>
+    <p class="lede">Same screens, gestures and animations as iOS 27. Open source, in SwiftUI.</p>
+    <div class="actions">
+      <a class="button primary" href="https://github.com/AVGVSTVS96/retake">View on GitHub</a>
+      <a class="button" href="#build">Build it</a>
+    </div>
+  </div>
+  <figure class="phone hero-phone">
+    <video class="only-light" src="/media/take.mp4" poster="/media/take-poster.webp" muted playsinline loop preload="auto" aria-label="retake recording, stopping and recording again, three times"></video>
+    <img class="only-dark" src="/media/iphone-18-pro-max-recording-full-dark.webp" alt="retake's full recording screen in dark mode with a red waveform and a running timer" width="720" height="1564">
+  </figure>
+  <div class="strip" aria-hidden="true">
+    <canvas></canvas>
+    <div class="strip-ruler"></div>
+    <div class="strip-takes"></div>
+    <div class="playhead"></div>
+  </div>
+</section>
+
+<section class="note">
+  <blockquote>
+    <p>“it looks good. but do anything complicated with it and it probably breaks.”</p>
+    <footer>bassim, on Voice Memos</footer>
+  </blockquote>
+</section>
+
+<section class="stop" id="stop">
+  <div class="head">
+    <h2>Stop is instant.</h2>
+    <p>The file closes the moment you tap stop, and the take is in the list before the sheet finishes collapsing. There's no “Saving…” to get stuck on.<sup><a href="#n1">1</a></sup></p>
+  </div>
+  <div class="timing" data-scale="600">
+    <div class="timing-controls">
+      <span class="timing-label">After you tap stop, at real speed</span>
+      <span class="speeds">
+        <button type="button" data-rate="1" aria-pressed="true">1×</button>
+        <button type="button" data-rate="0.25" aria-pressed="false">¼×</button>
+      </span>
+    </div>
+    <div class="lanes">
+      <div class="lane" data-lane="apple">
+        <span class="lane-name">Voice Memos</span>
+        <div class="track">
+          <span class="block wait" style="--from:0;--to:330">saving, nothing moves · ~330 ms</span>
+          <span class="block collapse" style="--from:330;--to:545">collapse · ~215 ms</span>
+          <span class="row-in" style="--at:545">New Recording</span>
+        </div>
+      </div>
+      <div class="lane" data-lane="retake">
+        <span class="lane-name">retake</span>
+        <div class="track">
+          <span class="block collapse ours" style="--from:0;--to:190"><span class="long">collapse,&nbsp;</span>no wait</span>
+          <span class="row-in" style="--at:150">New Recording</span>
+        </div>
+      </div>
+      <div class="ms-ruler" aria-hidden="true"><span>0</span><span>100</span><span>200</span><span>300</span><span>400</span><span>500</span><span>600 ms</span></div>
+      <div class="sweep" aria-hidden="true"></div>
+    </div>
+  </div>
+</section>
+
+<section class="disk">
+  <figure class="phone">
+    <picture>
+      <source srcset="/media/iphone-18-pro-max-recording-full-dark.webp" media="(prefers-color-scheme: dark)">
+      <img src="/media/iphone-18-pro-max-paused-light.webp" alt="retake's recording sheet, paused, with the Resume button" width="720" height="1564" loading="lazy">
+    </picture>
+  </figure>
+  <div class="disk-copy">
+    <h2>Every take hits the disk as you record.</h2>
+    <p>If the app dies mid-recording, the next launch finds the file and puts it back in your list. A call or Siri pauses the take and keeps everything so far.</p>
+    <svg class="states" viewBox="0 0 520 260" role="img" aria-label="One recorder with three states. Record goes from idle to recording. Pause, or a call or Siri, goes to paused. Resume goes back. Stop goes from either to idle, with the take in the list.">
+      <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="currentColor"/></marker></defs>
+      <g class="wires" fill="none" stroke="currentColor" stroke-width="1.25" marker-end="url(#arrow)">
+        <path d="M118 62 H196"/>
+        <path d="M330 52 C380 40 410 40 440 70" />
+        <path d="M430 104 C400 124 370 124 330 92"/>
+        <path d="M262 100 V170 H118 V100" class="stop-path"/>
+      </g>
+      <g class="nodes">
+        <rect x="18" y="40" width="100" height="44" rx="22"/>
+        <rect class="live" x="198" y="40" width="132" height="44" rx="22"/>
+        <rect x="402" y="62" width="100" height="44" rx="22"/>
+      </g>
+      <g class="names" text-anchor="middle">
+        <text x="68" y="67">idle</text>
+        <text class="live" x="264" y="67">recording</text>
+        <text x="452" y="89">paused</text>
+      </g>
+      <g class="edges">
+        <text x="157" y="54" text-anchor="middle">record</text>
+        <text x="392" y="30" text-anchor="middle">pause, a call, Siri</text>
+        <text x="380" y="140" text-anchor="middle">resume</text>
+        <text x="190" y="194" text-anchor="middle" class="stop-label">stop: file closed, take in the list</text>
+      </g>
+    </svg>
+  </div>
+</section>
+
+<section class="takes">
+  <div class="head">
+    <h2>300 takes in a row.</h2>
+    <p>A test records, stops and starts again 300 times, and checks every take is there at the right length.<sup><a href="#n2">2</a></sup> A UI test does the same through the real app.</p>
+  </div>
+  <div class="ledger">
+    <canvas aria-label="300 bars, one per take the test records. Each bar's height is that take's length, 50 to 130 milliseconds."></canvas>
+    <div class="ledger-read" aria-live="polite"><span class="title">New Recording</span><span class="len">50 ms</span></div>
+    <div class="ledger-ends" aria-hidden="true"><span>New Recording</span><span>New Recording 300</span></div>
+  </div>
+</section>
+
+<section class="parity">
+  <div class="head center">
+    <h2>Frame for frame with iOS 27.</h2>
+    <p>Built against 60 fps footage of the real app, frame-counted, plus Apple's own iOS 27 strings. Tap record and the card rises with no overshoot, like Apple's.<sup><a href="#n3">3</a></sup></p>
+  </div>
+  <div class="pair">
+    <figure class="phone">
+      <picture>
+        <source srcset="/media/iphone-18-pro-max-recording-dark.webp" media="(prefers-color-scheme: dark)">
+        <img src="/media/iphone-18-pro-max-recording-light.webp" alt="The record card over the recordings list, with a live red waveform" width="720" height="1564" loading="lazy">
+      </picture>
+      <figcaption>The record card</figcaption>
+    </figure>
+    <figure class="phone">
+      <picture>
+        <source srcset="/media/iphone-18-pro-max-expanded-dark.webp" media="(prefers-color-scheme: dark)">
+        <img src="/media/iphone-18-pro-max-expanded-light.webp" alt="A recording expanded in the list with its scrubber and transport" width="720" height="1564" loading="lazy">
+      </picture>
+      <figcaption>The row it lands in</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="screens">
+  <div class="head">
+    <h2>The rest of the app, screen for screen.</h2>
+    <p>Trim, Replace from the playhead, transcripts that write themselves while you record.</p>
+  </div>
+  <div class="reel" tabindex="0" aria-label="Screens of retake">
+    <figure class="phone">
+      <picture>
+        <source srcset="/media/iphone-18-pro-max-trim-dark.webp" media="(prefers-color-scheme: dark)">
+        <img src="/media/iphone-18-pro-max-trim-light.webp" alt="Trim, with the yellow selection over the waveform" width="720" height="1564" loading="lazy">
+      </picture>
+      <figcaption>Trim</figcaption>
+    </figure>
+    <figure class="phone">
+      <img src="/media/iphone-18-pro-max-player-dark.webp" class="only-dark" alt="A recording open in the full player, with Replace" width="720" height="1564" loading="lazy">
+      <img src="/media/iphone-18-pro-max-transcript-light.webp" class="only-light" alt="A recording's transcript in the full player, with Replace" width="720" height="1564" loading="lazy">
+      <figcaption>Transcript and Replace</figcaption>
+    </figure>
+    <figure class="phone">
+      <picture>
+        <source srcset="/media/iphone-18-pro-max-options-dark.webp" media="(prefers-color-scheme: dark)">
+        <img src="/media/iphone-18-pro-max-options-light.webp" alt="Options: playback speed, Skip Silence and Enhance Recording" width="720" height="1564" loading="lazy">
+      </picture>
+      <figcaption>Options</figcaption>
+    </figure>
+    <figure class="phone">
+      <picture>
+        <source srcset="/media/iphone-18-pro-max-list-dark.webp" media="(prefers-color-scheme: dark)">
+        <img src="/media/iphone-18-pro-max-folders-light.webp" alt="Folders: All Recordings and Recently Deleted" width="720" height="1564" loading="lazy">
+      </picture>
+      <figcaption class="only-light">Folders</figcaption>
+      <figcaption class="only-dark">All Recordings</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="devices">
+  <div class="head">
+    <h2>iPhone, iPad and iPhone Duo.</h2>
+    <p>The iPad gets the split view. The Duo gets both screens, closed and open.</p>
+  </div>
+  <div class="device-row">
+    <figure class="tablet duo-open">
+      <picture>
+        <source srcset="/media/iphone-duo-2-open-list-dark.webp" media="(prefers-color-scheme: dark)">
+        <img src="/media/iphone-duo-2-open-list-light.webp" alt="retake on iPhone Duo, open: the list beside the player" width="1600" height="1126" loading="lazy">
+      </picture>
+      <figcaption>iPhone Duo, open</figcaption>
+    </figure>
+    <figure class="tablet ipad">
+      <picture>
+        <source srcset="/media/ipad-pro-13-list-dark.webp" media="(prefers-color-scheme: dark)">
+        <img src="/media/ipad-pro-13-list-light.webp" alt="retake on iPad Pro 13-inch in split view" width="1200" height="1600" loading="lazy">
+      </picture>
+      <figcaption>iPad Pro 13″</figcaption>
+    </figure>
+    <figure class="phone duo-cover">
+      <img src="/media/iphone-duo-1-list-light.webp" alt="retake on the iPhone Duo cover screen" width="640" height="931" loading="lazy">
+      <figcaption>Duo, closed</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="scope">
+  <div>
+    <h3>In</h3>
+    <p>The list with its inline player, the record card and full sheet, pause and resume, Replace from the playhead, trim and delete with Save or Save as New, playback speed, Skip Silence, Enhance Recording, on-device transcripts (live while recording), folders, Favorites, Recently Deleted, search across titles and transcripts, rename, duplicate, share, the iPad split view, Live Activity and Dynamic Island, a Control Center button, and Settings.</p>
+  </div>
+  <div>
+    <h3>Not yet</h3>
+    <p>Layered recordings, Spatial Audio and Studio Sound (they need iPhone 16 Pro and 18 Pro mics), iCloud sync, Apple Watch.</p>
+  </div>
+</section>
+
+<section class="build" id="build">
+  <div class="head">
+    <h2>Build it yourself.</h2>
+    <p>You need Xcode 27 (27.1 for the iPhone Duo simulator). Launch with <code>-demo</code> for a sample library and a fake microphone.</p>
+  </div>
+  <div class="code">
+    <pre><code>git clone https://github.com/AVGVSTVS96/retake
+cd retake
+brew install xcodegen
+xcodegen generate
+open Retake.xcodeproj</code></pre>
+    <button type="button" class="copy">Copy</button>
+  </div>
+</section>
+
+<section class="name">
+  <p class="split" aria-hidden="true">re<span class="cut"></span>take</p>
+  <p>A retake is recording it again. That's exactly where Voice Memos falls apart, so it's what this one is built around.</p>
+</section>
+
+</main>
+
+<footer class="foot">
+  <ol class="notes">
+    <li id="n1">Voice Memos timing from iOS 26's screen recording, frame-counted at 60 fps. iOS 27's footage shows the same collapse after Done.</li>
+    <li id="n2">Within 30 ms, after compression to AAC.</li>
+    <li id="n3">Card rise in iOS 27: ~280 ms from touch to settle, measured from 60 fps footage.</li>
+  </ol>
+  <p class="legal"><span>retake · MIT · by <a href="https://x.com/AVGVSTVS96">bassim</a></span> <span>Not affiliated with Apple. Voice Memos is a trademark of Apple Inc.</span></p>
+</footer>
+
+<script type="module" src="./main.js"></script>
+</body>
+</html>
