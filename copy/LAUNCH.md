@@ -2,11 +2,11 @@
 
 The X post, a thread variant, alt text, the first reply, and captions for standalone images. Bassim's voice: lowercase, plain, sure of the work. The link goes in the first reply. Every line traces to `MESSAGING.md` and its Numbers table.
 
-Before posting: the repo is public, the Duo shots are reshot, and retake's own ms are re-measured (see MESSAGING Numbers). Nothing below quotes retake's ms, so the post works either way.
+Before posting: the repo is public and retake's own ms are re-measured (see MESSAGING Numbers). Nothing below quotes retake's ms, so the post works either way.
 
 ## The post
 
-*(Attach the stop clip: record, stop, record again, 8 to 12 s, from `testRecordStopRecordAgain.mov`, phone-cropped.)*
+*(Attach `brand/assets/x-clip.mp4`: record, stop, record again, 11.6 s, cut from `testRecordStopRecordAgain.mov`.)*
 
 ```
 ios 27 voice memos is pretty until you stop a recording and start a new one
@@ -43,7 +43,7 @@ Four posts. The first is the post above without "link in replies".
 
 **2. The stop**
 
-*(Attach the timing strip image.)*
+*(Attach `brand/assets/x-2-stop.png`.)*
 
 ```
 the moment that matters is stop
@@ -77,7 +77,7 @@ The first reply above.
 
 Each is a separate post, at least 6 hours apart, each linking back in its first reply.
 
-**The side-by-side** (light and dark, same screen; never Apple's footage)
+**The side-by-side** (`brand/assets/x-1-light-dark.png`)
 
 ```
 retake in light and dark. built against ios 27 footage frame by frame, so it's the voice memos you know, minus the lost takes
@@ -85,7 +85,7 @@ retake in light and dark. built against ios 27 footage frame by frame, so it's t
 
 Alt text: Two iPhone screenshots of retake's full recording screen side by side, light on the left, dark on the right, each with a red waveform, a running timer and a red pause button.
 
-**The stop timing**
+**The stop timing** (`brand/assets/x-2-stop.png`)
 
 ```
 tap stop in voice memos (ios 26 screen recording) and nothing happens for ~330 ms while it saves. in retake the file is already closed. frame-counted at 60 fps
@@ -93,13 +93,29 @@ tap stop in voice memos (ios 26 screen recording) and nothing happens for ~330 m
 
 Alt text: A timing diagram of the stop moment. Voice Memos waits about 330 milliseconds before its 215 millisecond collapse; retake collapses right away.
 
-**The Duo** *(after the reshoot)*
+**The Duo** (`brand/assets/x-3-devices.png`)
 
 ```
 retake on iphone duo: the cover screen and the open book, plus ipad's split view
 ```
 
 Alt text: retake on iPhone Duo, closed on the cover screen and open across both halves, showing the All Recordings list with a red record button.
+
+**The 300** (`brand/assets/x-4-300.png`)
+
+```
+one bar per take. a test records, stops and starts again 300 times, and every take is there within 30 ms of its length
+```
+
+Alt text: 300 thin gray bars in a row, one per take the test records, each as tall as that take is long, from "New Recording" to "New Recording 300".
+
+**The line** (`brand/assets/x-5-quote.png`)
+
+```
+what i said about voice memos before i rebuilt it
+```
+
+Alt text: White text on black: "it looks good. but do anything complicated with it and it probably breaks." Signed bassim, on Voice Memos, with the retake logo.
 
 ## Notes
 

@@ -67,7 +67,7 @@ One headline, one short line, one visual each. In this order: the edge first, th
 
 **Line:** The iPad gets the split view. The Duo gets both screens, closed and open.
 
-**Visual:** `ipad-pro-13-list-light.png` and the two Duo shots. *(Blocked: `iphone-duo-2-list-light.png` is solid black and `iphone-duo-1-list-light.png` has the status bar and toolbar laid out beside the list. Reshoot both before this section ships; until then, the iPad alone.)*
+**Visual:** `ipad-pro-13-list-light.png`, `iphone-duo-2-open-list-light.png` (open) and `iphone-duo-1-list-light.png` (cover). Reshot and checked Oct 10.
 
 ## The name
 

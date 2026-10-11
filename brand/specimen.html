@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>retake · brand specimen</title>
+<link rel="icon" href="logo/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../site/style.css">
+<style>
+  main > section + section { margin-top: 120px; }
+  .label { font: 600 13px/1 var(--text); color: var(--ink-3); margin: 0 0 20px; display: flex; gap: 8px; align-items: center; }
+  .label::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--red); }
+  .sheet { background: #F2F2F7; border-radius: 24px; padding: 24px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; box-shadow: 0 0 0 1px var(--hair); }
+  .sheet figure { margin: 0; }
+  .sheet img { width: 100%; border-radius: 14px; background: #fff; }
+  .sheet figcaption { font-size: 13px; color: #55555B; margin-top: 10px; }
+  .sheet .pick figcaption { color: #111113; font-weight: 600; }
+  .marks { display: flex; flex-wrap: wrap; align-items: center; gap: 36px; margin-top: 28px; }
+  .marks .icon { width: 120px; border-radius: 27px; box-shadow: 0 0 0 1px var(--hair); }
+  .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; }
+  .swatch { border-radius: 16px; background: var(--surface); box-shadow: 0 0 0 1px var(--hair); overflow: hidden; font-size: 13px; }
+  .swatch i { display: block; height: 72px; background: var(--c); }
+  .swatch div { padding: 10px 12px; }
+  .swatch b { display: block; font-weight: 600; }
+  .swatch span { color: var(--ink-3); font-family: var(--mono); font-size: 12px; }
+  .scale > * { margin: 0 0 18px; }
+  .scale .meta { font: 400 12px var(--mono); color: var(--ink-3); margin: 0 0 4px; }
+  .motifs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+  .motif { background: var(--surface); border-radius: 20px; box-shadow: 0 0 0 1px var(--hair); padding: 28px; min-height: 200px; position: relative; }
+  .motif p { margin: 16px 0 0; font-size: 14px; color: var(--ink-2); }
+  .motif .demo { height: 96px; display: flex; align-items: center; justify-content: center; }
+  .demo .ph { position: relative; width: 2px; height: 72px; background: var(--red); }
+  .demo .ph::before, .demo .ph::after { content: ""; position: absolute; left: -3.5px; width: 9px; height: 9px; border-radius: 50%; background: var(--red); }
+  .demo .ph::before { top: -4px; } .demo .ph::after { bottom: -4px; }
+  .demo .rec { width: 64px; height: 64px; border-radius: 50%; box-shadow: inset 0 0 0 3px var(--ink); display: grid; place-items: center; }
+  .demo .rec i { width: 46px; height: 46px; border-radius: 50%; background: var(--red); animation: morph 2.4s var(--ease) infinite alternate; }
+  @keyframes morph { 0%, 30% { width: 46px; height: 46px; border-radius: 50%; } 70%, 100% { width: 24px; height: 24px; border-radius: 6px; } }
+  .demo .bars { display: flex; gap: 3px; align-items: center; height: 72px; }
+  .demo .bars i { width: 2px; border-radius: 1px; background: var(--ink-3); }
+  .demo .bars i.r { background: var(--red); }
+  .fields { display: grid; grid-template-columns: repeat(2, minmax(0, 260px)); gap: 48px; justify-content: center; }
+  .field { border-radius: 28px; padding: 48px 40px; container-type: inline-size; }
+  .field.l { background: #F2F2F7; color-scheme: light; }
+  .field.d { background: #000; color-scheme: dark; box-shadow: 0 0 0 1px var(--hair); }
+  @media (max-width: 760px) { .sheet, .motifs { grid-template-columns: 1fr; } .fields { grid-template-columns: 1fr; } }
+  @media (prefers-reduced-motion: reduce) { .demo .rec i { animation: none; } }
+</style>
+</head>
+<body>
+<header class="bar">
+  <a class="lockup"><picture><source srcset="logo/lockup-dark.svg" media="(prefers-color-scheme: dark)"><img src="logo/lockup.svg" alt="retake" height="28"></picture></a>
+  <span class="bar-link">brand specimen</span>
+</header>
+<main>
+
+<section class="hero">
+  <div class="hero-copy">
+    <h1>Voice Memos, rebuilt.<br> <span class="trim">It never loses a take.</span></h1>
+    <p class="lede">Same screens, gestures and animations as iOS 27. Open source, in SwiftUI.</p>
+    <div class="actions"><a class="button primary">View on GitHub</a><a class="button">Build it</a></div>
+  </div>
+  <figure class="phone hero-phone">
+    <picture><source srcset="../site/public/media/iphone-18-pro-max-recording-full-dark.webp" media="(prefers-color-scheme: dark)"><img src="../site/public/media/iphone-18-pro-max-recording-full-light.webp" alt="" width="720" height="1564"></picture>
+  </figure>
+</section>
+
+<section>
+  <p class="label">Logo · three directions, B picked</p>
+  <div class="sheet">
+    <figure><img src="logo/explore-a-playhead.svg" alt=""><figcaption>A · Playhead. The word cut where a new take starts.</figcaption></figure>
+    <figure class="pick"><img src="logo/explore-b-button.svg" alt=""><figcaption>B · Button. Record, halfway to stop. Picked.</figcaption></figure>
+    <figure><img src="logo/explore-c-waveform.svg" alt=""><figcaption>C · Waveform. The word sliced into the app's bars.</figcaption></figure>
+  </div>
+  <div class="marks">
+    <img src="logo/favicon.svg" width="16" alt=""><img src="logo/favicon.svg" width="32" alt=""><img src="logo/favicon.svg" width="48" alt="">
+    <picture><source srcset="logo/lockup-dark.svg" media="(prefers-color-scheme: dark)"><img src="logo/lockup.svg" height="20" alt=""></picture>
+    <picture><source srcset="logo/lockup-dark.svg" media="(prefers-color-scheme: dark)"><img src="logo/lockup.svg" height="48" alt=""></picture>
+    <img class="icon" src="logo/app-icon.svg" alt=""><img class="icon" src="logo/app-icon-dark.svg" alt=""><img class="icon" src="logo/app-icon-tinted.svg" alt="">
+  </div>
+</section>
+
+<section>
+  <p class="label">Color · the app's own, each meaning what it means in the app</p>
+  <div class="swatches">
+    <div class="swatch" style="--c: var(--paper)"><i></i><div><b>paper</b><span>#F2F2F7 · #000000</span></div></div>
+    <div class="swatch" style="--c: var(--surface)"><i></i><div><b>surface</b><span>#FFFFFF · #1C1C1E</span></div></div>
+    <div class="swatch" style="--c: var(--ink)"><i></i><div><b>ink</b><span>#111113 · #F5F5F7</span></div></div>
+    <div class="swatch" style="--c: var(--ink-3)"><i></i><div><b>ink-3</b><span>#6B6B71 · #8E8E93</span></div></div>
+    <div class="swatch" style="--c: var(--red)"><i></i><div><b>red · recording</b><span>#FF383C · #FF4245</span></div></div>
+    <div class="swatch" style="--c: var(--trim)"><i></i><div><b>trim · selected</b><span>#F5E8B5 · #4A4115</span></div></div>
+    <div class="swatch" style="--c: var(--blue)"><i></i><div><b>blue · playing</b><span>#0088FF · #0091FF</span></div></div>
+    <div class="swatch" style="--c: var(--link)"><i></i><div><b>link</b><span>#0060C7 · #5CB3FF</span></div></div>
+  </div>
+</section>
+
+<section class="scale">
+  <p class="label">Type · Funnel Display, Funnel Sans, Geist Mono</p>
+  <p class="meta">display · Funnel Display 700 · 92/94 · −0.045em</p>
+  <h1 style="font-size: clamp(44px, 7vw, 92px)">It never loses a take.</h1>
+  <p class="meta">h2 · Funnel Display 650 · 54/56 · −0.035em</p>
+  <h2>Stop is instant.</h2>
+  <p class="meta">quote · Funnel Display 500 · 50/57 · −0.03em</p>
+  <p style="font: 500 clamp(28px, 4vw, 50px)/1.14 var(--display); letter-spacing: -0.03em">“it looks good. but do anything complicated with it and it probably breaks.”</p>
+  <p class="meta">lede · Funnel Sans 400 · 22/32</p>
+  <p class="lede" style="margin: 0 0 18px">Same screens, gestures and animations as iOS 27. Open source, in SwiftUI.</p>
+  <p class="meta">body · Funnel Sans 400 · 17/26 · tabular figures for times</p>
+  <p style="max-width: 34em">The file closes the moment you tap stop, and the take is in the list before the sheet finishes collapsing. <span style="font-feature-settings: 'tnum'">0:04 · 0:06 · 0:04</span></p>
+  <p class="meta">code · Geist Mono 400 · 14/26</p>
+  <p><code>xcodegen generate</code></p>
+</section>
+
+<section>
+  <p class="label">Motifs · all from the recording screen</p>
+  <div class="motifs">
+    <div class="motif"><div class="demo"><div class="rec"><i></i></div></div><p><b>The button.</b> The disc morphs into the stop square and back. The mark is that morph, caught halfway.</p></div>
+    <div class="motif"><div class="demo"><div class="ph"></div></div><p><b>The playhead.</b> A 2px line with a dot at each end marks "now": red while recording, gray when idle. One per view.</p></div>
+    <div class="motif"><div class="demo"><div class="bars" id="bars"></div></div><p><b>The bars.</b> 2px bars on a 5px pitch, red while a take is live, gray once it's saved. Only ever real data: a take, or the 300 the test records.</p></div>
+    <div class="motif"><div class="demo"><span class="trim" style="font: 700 40px/1 var(--display); letter-spacing: -0.04em">never loses a take</span></div><p><b>The trim band.</b> Trim's yellow selection, as a highlight under the one phrase that matters. Hero and link previews only.</p></div>
+  </div>
+</section>
+
+<section>
+  <p class="label">Fields · the real app sits on its own background</p>
+  <div class="fields">
+    <div class="field l"><figure class="phone"><img src="../site/public/media/iphone-18-pro-max-list-light.webp" alt=""></figure></div>
+    <div class="field d"><figure class="phone"><img src="../site/public/media/iphone-18-pro-max-list-dark.webp" alt=""></figure></div>
+  </div>
+</section>
+
+</main>
+<footer class="foot"><p class="legal"><span>retake brand · see BRAND.md</span><span>Not affiliated with Apple.</span></p></footer>
+<script>
+const bars = document.getElementById("bars")
+for (let i = 0; i < 40; i++) {
+  const s = Math.sin(i * 12.9898) * 43758.5453, h = 16 + 56 * Math.abs(Math.sin(i * 0.31)) * (0.5 + 0.5 * (s - Math.floor(s)))
+  bars.insertAdjacentHTML("beforeend", `<i class="${i > 25 ? "r" : ""}" style="height:${h}px"></i>`)
+}
+</script>
+</body>
+</html>

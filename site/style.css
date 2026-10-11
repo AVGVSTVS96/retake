@@ -155,9 +155,10 @@ h1 {
 }
 
 .trim {
-  background: linear-gradient(var(--trim), var(--trim)) no-repeat 0 70% / 100% 0.5em;
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
+  text-decoration: underline var(--trim);
+  text-decoration-thickness: 0.34em;
+  text-underline-offset: -0.42em;
+  text-decoration-skip-ink: none;
 }
 
 .lede {
@@ -354,7 +355,7 @@ h1 {
   box-shadow: inset 0 0 0 1px var(--hair);
 }
 .block.collapse { background: var(--sunk); color: var(--ink); }
-.block.collapse.ours { background: var(--red); color: #fff; font-weight: 600; }
+.block.collapse.ours { background: var(--red); color: #111113; font-weight: 600; }
 
 .row-in {
   position: absolute;
@@ -421,7 +422,7 @@ h1 {
 .states .nodes rect { fill: var(--surface); stroke: var(--hair); }
 .states .nodes rect.live { fill: var(--red); stroke: none; }
 .states .names text { font: 600 16px var(--text); fill: var(--ink); }
-.states .names text.live { fill: #fff; }
+.states .names text.live { fill: #111113; }
 .states .edges text { font: 500 13px var(--text); fill: var(--ink-3); }
 .states .edges .stop-label { fill: var(--ink); font-weight: 600; }
 .states .stop-path { stroke: var(--ink); stroke-width: 1.5; color: var(--ink); }
