@@ -32,7 +32,7 @@
   --blue: light-dark(#0088FF, #0091FF);
   --link: light-dark(#0060C7, #5CB3FF);
   --yellow: light-dark(#FFCC00, #FFD60A);
-  --trim: light-dark(#F5E8B5, #4A4115);
+  --trim: #F5E8B5;
   --bezel: light-dark(#1D1D1F, #2C2C2E);
   --wait: light-dark(rgb(17 17 19 / 0.07), rgb(245 245 247 / 0.09));
   --bar: light-dark(#E5E5EA, #3A3A3C);
