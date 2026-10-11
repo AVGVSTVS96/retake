@@ -85,13 +85,14 @@ Apple's system colors, taken from retake's own screenshots, each meaning what it
 | `--ink-3` | `#6B6B71` (4.7:1) | `#8E8E93` (6.4:1) | captions, saved bars, the idle playhead |
 | `--red` | `#FF383C` | `#FF4245` | **recording.** The live take, the mark, the one highlighted thing |
 | `--red-ink` | `#D3141B` | `#FF6961` | red as text on paper |
-| `--trim` | `#F5E8B5` | `#4A4115` | **selected.** Trim's tint, as the highlight band and `::selection` |
+| `--trim` | `#F5E8B5` | (yellow ink) | **selected.** Trim's tint as a band under one phrase by day; by night the phrase is set in `--yellow` |
+| `--yellow` | `#FFCC00` | `#FFD60A` | trim's handles; the highlighted phrase in dark |
 | `--blue` | `#0088FF` | `#0091FF` | **playing.** Focus rings |
 | `--link` | `#0060C7` | `#5CB3FF` | links |
 | `--bezel` | `#1D1D1F` | `#2C2C2E` | the phone frame |
 
 - **Dark is the app's dark.** retake's dark screenshots are pure black with `#1C1C1E` sheets, so the page is black and cards are `#1C1C1E`: the screenshots sit on their own background, and each layer toward you is lighter. The bezel lifts to `#2C2C2E` so a phone reads against black.
-- **Trim yellow stays light by day.** By night it's the app's own dark trim tint, an olive, because that's what Voice Memos draws under a selection in dark mode. It is never laid over black at low opacity.
+- **Trim yellow stays light.** By day it's a pale band under the phrase. By night it moves into the ink at full strength (`#FFD60A` text, no band): the app's dark trim tint is an olive that read as mud under white text and fought GitHub's blue-black, so it isn't used on the page.
 - One red thing per view. The live take, the record dot, the playhead, or retake's bar in a comparison. Never red text for emphasis.
 
 ## Grid and spacing
@@ -105,7 +106,7 @@ Apple's system colors, taken from retake's own screenshots, each meaning what it
 1. **The button.** Ring plus red shape. The logo, the favicon, the app icon, the dot before Bassim's name.
 2. **The playhead.** 2px with a 9px dot at each end. Red while something is recording or being explained, `--ink-3` when idle. In the hero it follows the clip; in the timing chart it sweeps at real speed; at the bottom it splits "re | take".
 3. **The bars.** 2px rounded bars on a 4–5px pitch, symmetric about a center line, dotted line for silence, exactly as the app draws them. Red while live, `--ink-3` once saved. Only real data: the hero clip's takes, or the 300 takes the test records.
-4. **The trim band.** A `--trim` band under the bottom half of one phrase. The hero line and the link previews only.
+4. **The trim band.** A `--trim` band under the bottom half of one phrase, drawn as a thick offset underline so it can never reach the line above. In dark, the phrase turns `--yellow` instead. The hero line and the link previews only.
 
 ## Motion
 
