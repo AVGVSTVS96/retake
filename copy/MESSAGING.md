@@ -23,7 +23,7 @@ The shortest part of the page.
 
 One quoted line of his, verbatim from the voice note, lowercase, signed. It sits under the hero, before the sections.
 
-> "it's got a good look to it until you use it for anything more than recording."
+> "it looks good. but do anything complicated with it and it probably breaks."
 >
 > bassim
 

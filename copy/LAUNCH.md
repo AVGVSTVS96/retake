@@ -23,7 +23,7 @@ it's called retake. mit, iphone, ipad and iphone duo
 link in replies
 ```
 
-*(If Bassim says yes to his own line, swap the first line for: `ios 27 voice memos is one of the most buggy apps on ios. it's got a good look to it until you use it for anything more than recording`. The sharper version with his profanity is his call, X only.)*
+*(Bassim OKd quoting him, Oct 10. Approved line: `it looks good. but do anything complicated with it and it probably breaks.`)*
 
 Alt text: A phone screen recording of retake. Tapping the red record button raises a recording card with a live red waveform. Tapping stop collapses the card back into the button, and "New Recording" appears at the top of the list. It repeats three times.
 
