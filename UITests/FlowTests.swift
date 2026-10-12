@@ -51,6 +51,21 @@ final class FlowTests: XCTestCase {
     }
 
     @MainActor
+    func testRowExpandCollapse() {
+        let app = launch()
+        pause(1)
+        for (title, x) in [("Standup notes", 0.5), ("Call with Maya", 2.5), ("Call with Maya", 2.5), ("Standup notes", 0.5), ("Standup notes", 2.5)] {
+            app.staticTexts[title].coordinate(withNormalizedOffset: CGVector(dx: x, dy: 0.5)).press(forDuration: 0.2)
+            pause(1)
+        }
+        app.buttons["Select"].tap()
+        app.staticTexts["Chorus idea"].coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0.5)).withOffset(CGVector(dx: -26, dy: 0)).tap()
+        XCTAssertTrue(app.staticTexts["1 Selected"].waitForExistence(timeout: 2))
+        app.buttons["Done"].tap()
+        pause(1)
+    }
+
+    @MainActor
     func testRowToPlayerAndOptions() {
         let app = launch()
         app.staticTexts["Standup notes"].tap()

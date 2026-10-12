@@ -12,40 +12,73 @@ struct RecordingRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(recording.title)
-                    .font(.headline)
-                    .lineLimit(1)
-                Spacer(minLength: 8)
+            HStack {
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(recording.title)
+                        .font(.headline)
+                        .lineLimit(1)
+                    HStack(spacing: 6) {
+                        Text(Format.listDate(recording.created))
+                        if recording.transcript != nil {
+                            Image(systemName: "quote.bubble")
+                                .imageScale(.small)
+                                .accessibilityLabel("Transcription available")
+                        }
+                        Spacer()
+                        if !isExpanded {
+                            Text(Format.duration(recording.duration))
+                                .monospacedDigit()
+                                .transition(.identity)
+                        }
+                    }
+                    .font(.subheadline)
+                    .foregroundStyle(isSelected ? AnyShapeStyle(.white.opacity(0.85)) : AnyShapeStyle(.secondary))
+                    .padding(.top, 2)
+                }
                 if isExpanded {
                     RecordingMenu(recording: recording)
-                        .transition(.opacity)
+                        .transition(.asymmetric(insertion: .opacity.animation(.easeOut(duration: 0.2)), removal: .identity))
                 }
             }
-            HStack(spacing: 6) {
-                Text(Format.listDate(recording.created))
-                if recording.transcript != nil {
-                    Image(systemName: "quote.bubble")
-                        .imageScale(.small)
-                        .accessibilityLabel("Transcription available")
+            Reveal(fraction: isExpanded ? 1 : 0) {
+                if isExpanded {
+                    InlinePlayer(recording: recording)
+                        .transition(.asymmetric(insertion: .opacity.animation(.linear(duration: 0.27).delay(0.09)), removal: .identity))
                 }
-                Spacer()
-                if !isExpanded {
-                    Text(Format.duration(recording.duration))
-                        .monospacedDigit()
-                }
-            }
-            .font(.subheadline)
-            .foregroundStyle(isSelected ? AnyShapeStyle(.white.opacity(0.85)) : AnyShapeStyle(.secondary))
-            .padding(.top, 2)
-            if isExpanded {
-                InlinePlayer(recording: recording)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
         .padding(.vertical, 11)
         .foregroundStyle(isSelected ? .white : .primary)
         .clipped()
+        .animation(.smooth(duration: 0.3), value: isExpanded)
+    }
+}
+
+/// List snaps a cell to its new height when content animates inside it, but follows a layout whose
+/// height changes every frame, so the row grows through this one. It keeps the last content height
+/// so a collapse can shrink the row after the player is gone.
+private struct Reveal: Layout {
+    var fraction: Double
+
+    var animatableData: Double {
+        get { fraction }
+        set { fraction = newValue }
+    }
+
+    func makeCache(subviews: Subviews) -> CGFloat { 0 }
+
+    func updateCache(_ cache: inout CGFloat, subviews: Subviews) {}
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout CGFloat) -> CGSize {
+        let size = subviews.first?.sizeThatFits(ProposedViewSize(width: proposal.width, height: nil))
+        return CGSize(width: size?.width ?? 0, height: (size?.height ?? cache) * fraction)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout CGFloat) {
+        guard let content = subviews.first else { return }
+        let proposal = ProposedViewSize(width: bounds.width, height: nil)
+        cache = content.sizeThatFits(proposal).height
+        content.place(at: bounds.origin, proposal: proposal)
     }
 }
 
@@ -63,7 +96,7 @@ struct InlinePlayer: View {
         VStack(spacing: 0) {
             TimelineView(.animation(paused: !player.isPlaying)) { _ in
                 let time = player.current == recording.id ? player.time() : 0
-                VStack(spacing: 6) {
+                VStack(spacing: 9) {
                     Scrubber(value: time, total: recording.duration) { player.seek(to: $0) }
                     HStack {
                         Text(Format.duration(time))
@@ -100,7 +133,7 @@ struct InlinePlayer: View {
                 .accessibilityLabel("Delete")
             }
             .buttonStyle(.borderless)
-            .padding(.top, 10)
+            .padding(.top, 14)
         }
     }
 }

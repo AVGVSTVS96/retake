@@ -22,7 +22,7 @@ struct RecordingsList: View {
 
     var body: some View {
         @Bindable var session = session
-        List(selection: $selection) {
+        List(selection: editMode.isEditing ? $selection : nil) {
             ForEach(recordings) { recording in
                 RecordingRow(recording: recording, scope: scope, isExpanded: !isSplit && session.expanded == recording.id && !editMode.isEditing)
                     .contentShape(.rect)
@@ -37,7 +37,6 @@ struct RecordingsList: View {
         .listStyle(.plain)
         .environment(\.editMode, $editMode)
         .animation(.smooth(duration: 0.32), value: recordings.map(\.id))
-        .animation(.smooth(duration: 0.32), value: session.expanded)
         .safeAreaPadding(.bottom, scope == .deleted ? 0 : Metrics.recordDot + 2 * Metrics.recordRing + 10)
         .overlay(alignment: .bottom) {
             if isSplit, scope != .deleted {

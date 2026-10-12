@@ -10,7 +10,7 @@ xcrun simctl status_bar "$id" override --time 9:41 --batteryState charged --batt
 xcrun simctl privacy "$id" grant microphone "$BUNDLE" >/dev/null 2>&1 || true
 xcrun simctl ui "$id" appearance "${APPEARANCE:-light}"
 mkdir -p shots/motion
-for test in ${TESTS:-testRecordStopRecordAgain testExpandSheetPauseResumeDone testRowToPlayerAndOptions}; do
+for test in ${TESTS:-testRecordStopRecordAgain testExpandSheetPauseResumeDone testRowExpandCollapse testRowToPlayerAndOptions}; do
   out=shots/motion/$test.mov
   rm -f "$out"
   xcrun simctl io "$id" recordVideo --codec h264 --force "$out" >/dev/null 2>&1 &

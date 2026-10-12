@@ -104,7 +104,7 @@ Shots: `shots/iphone-ios27-list-row-expanded-playback-light_apple-guide.png`, `v
 
 - Margins are 20pt left and right. Separators run between rows and above the first row.
 - A collapsed row is ~64pt tall: title on line 1, date and icons on line 2, with the duration right-aligned on line 2.
-- The expanded (selected) row is ~196pt. Under the title it has a "…" (blue, top-right, vertically centered on the title block), a scrubber with elapsed and remaining times (remaining is negative, "−0:13"), and a control row: blue waveform icon (opens the full player), ⟲15, ▶ (~28pt black), 15⟳, blue trash.
+- The expanded (selected) row is ~164pt on the iOS 27.0 device footage (2.62× a collapsed row; the iOS 27 guide still is taller, ~2.86×). Measured from the title's center: date +22, scrubber +53, elapsed/remaining times +76, transport +117, next row's title +164pt. Under the title it has a "…" (blue, top-right, vertically centered on the title block), a scrubber with elapsed and remaining times (remaining is negative, "−0:13"), and a control row: blue waveform icon (opens the full player), ⟲15, ▶ (~28pt black), 15⟳, blue trash.
 - Dates show the time of day for today ("9:41 AM"), "Yesterday", the weekday within the last week ("Wednesday", seen on iPad), and "March 26, 2026" or "Feb 7, 2026" when older. The format is locale-driven [C].
 - Default names are "New Recording", "New Recording 2", "New Recording 3"… or the location name when Location Services is on [C].
 - The record button is ~51pt, centered, with its center ~64pt above the bottom of the screen. It shows only on recording lists, not on the folders screen [C].
@@ -383,6 +383,16 @@ A standard navigation pop (~350–400 ms, system curve). The record button fades
 - Bar pitch ≈ 4.5–5pt, bar width ≈ 1.5–2pt, rounded caps, symmetric about the center line [I measured].
 - Bar height is proportional to RMS/peak in dB with a floor, so silence still draws a 1pt dot [C, visible dotted baseline].
 - Updates at display rate (60/120 Hz), scrolling continuously, not stepping per bar [I].
+
+### 4.13 Tap a row → expand / collapse [C]
+
+TUTORIAL_info iPhone 18 Pro, iOS 27.0: 3:43.5 (tap the second row, then back) and 4:43.5, 4:54.5 (Recently Deleted). The footage is 50 fps upsampled to 60 (every 6th frame is a duplicate), so drop duplicates and time at 50 fps.
+
+- **Height:** a critically damped spring, response 0.30s, no overshoot (`.smooth(duration: 0.3)`). Four transitions (two expands, one collapse, one switch) all fit within 1% rms. Expand and collapse use the same curve, and rows below move with it.
+- **No highlight:** the row never turns gray, not on press and not when expanded.
+- **Expand:** the scrubber, times and transport sit at their final spot under the title (no slide). They fade in linearly from ~90ms to ~365ms after motion starts, uncovered by the rows moving away. The "…" fades in over ~200ms from the start. The duration on the date line disappears at once.
+- **Collapse:** the player and "…" vanish within 1–2 frames as motion starts. The duration reappears at once, then the empty row shrinks.
+- **Switch:** both happen together: one row empties and shrinks while the other grows and fades its player in.
 
 ---
 
