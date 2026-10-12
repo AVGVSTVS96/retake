@@ -30,6 +30,7 @@ MOMENTS = (0, 0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.6)
 LEVERS = ("make the change you think most likely to close the gap",
           "change only how fast it moves (duration or response), keeping the curve shape",
           "change only the shape of the curve (bounce, damping fraction, easing or curve type), keeping its speed",
+          "change speed and shape together: one value alone may have stalled because the best fit needs both to move",
           "change only when it starts or how parts of it are staggered (delays, or separate timing for parts that move together)",
           "make a bolder change than the obvious one, in whichever direction the numbers point")
 
@@ -42,6 +43,8 @@ class Trial:
     commit: str | None
     change: str
     model: str = ""
+    agent: int = 0
+    round_kept: bool = False
     scores: dict = field(default_factory=dict)
     objective: float = float("inf")
     accepted: bool = False
@@ -196,14 +199,15 @@ def main(argv: list[str] | None = None):
             tree = run / "trees" / name
             git("worktree", "add", "-q", "-B", f"{branch}-{name}", str(tree), head)
             models = args.model.split(",")
+            stalled = sum(1 for t in history if t.move == move and t.agent == 1 and not t.round_kept)
             trees.append((name, tree, models[(k - 1) % len(models)],
-                          prompt(step, details, strip, history, LEVERS[(k - 1) % len(LEVERS)])))
+                          prompt(step, details, strip, history, LEVERS[(k - 1 + stalled * args.agents) % len(LEVERS)])))
 
         def attempt(job) -> Trial:
             name, tree, model, text = job
             began = time.time()
             change = agent(tree, text, model, here, here / f"{name}.txt")
-            trial = Trial(name, number, move, None, change, model=model)
+            trial = Trial(name, number, move, None, change, model=model, agent=int(name.split("a")[-1]))
             if not git("status", "--porcelain", "--untracked-files=no", cwd=tree):
                 trial.change = f"no change ({change})"
                 return trial
@@ -230,6 +234,7 @@ def main(argv: list[str] | None = None):
         else:
             stuck.add(move)
         for trial in trials:
+            trial.round_kept = winner.accepted
             history.append(trial)
             with log.open("a") as f:
                 f.write(json.dumps(asdict(trial)) + "\n")
