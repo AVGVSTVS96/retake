@@ -27,6 +27,11 @@ NAMES = {"claude-haiku-5-5": "Claude Haiku 5.5", "claude-sonnet-5-5": "Claude So
 MARGIN = 0.5
 SHARE = 0.03
 MOMENTS = (0, 0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.6)
+LEVERS = ("make the change you think most likely to close the gap",
+          "change only how fast it moves (duration or response), keeping the curve shape",
+          "change only the shape of the curve (bounce, damping fraction, easing or curve type), keeping its speed",
+          "change only when it starts or how parts of it are staggered (delays, or separate timing for parts that move together)",
+          "make a bolder change than the obvious one, in whichever direction the numbers point")
 
 
 @dataclass
@@ -36,6 +41,7 @@ class Trial:
     move: str
     commit: str | None
     change: str
+    model: str = ""
     scores: dict = field(default_factory=dict)
     objective: float = float("inf")
     accepted: bool = False
@@ -83,7 +89,7 @@ def describe(pair: Pair, move_id: str, metric: str) -> str:
     return "\n".join(lines)
 
 
-def prompt(step: dict, details: str, strip: Path, history: list[Trial], k: int, n: int) -> str:
+def prompt(step: dict, details: str, strip: Path, history: list[Trial], lever: str) -> str:
     tried = [f"- {t.change} -> {t.scores.get(step['id'], 'failed')}{' (kept)' if t.accepted else ''}"
              for t in history if t.move == step["id"]]
     return f"""You are tuning one animation in retake, a SwiftUI rebuild of Apple's Voice Memos, so it moves exactly like a reference screen recording of the same action.
@@ -99,7 +105,7 @@ The code that drives this move: {', '.join(step['files'])}
 Already tried from earlier rounds (score for this move, lower is better):
 {chr(10).join(tried) if tried else '- nothing yet'}
 
-Change the animation values behind this move (duration, bounce, response, damping fraction, delay, curve type) so ours matches the reference: faster or slower, more or less overshoot, earlier or later. Change only what this move needs, keep it compiling, and add no comments. You are attempt {k} of {n} this round, all starting from the same code, so pick the {k}{'st' if k == 1 else 'nd' if k == 2 else 'rd' if k == 3 else 'th'} most promising idea, not the obvious one if you are not attempt 1.
+Change the animation values behind this move so ours matches the reference: faster or slower, more or less overshoot, earlier or later. Other attempts run alongside you from the same code, so stick to your lever: {lever}. Change only what this move needs, keep it compiling with the iOS 27 SDK, and add no comments.
 
 Finish with one line: what you changed, from what value to what value."""
 
@@ -125,7 +131,7 @@ def main(argv: list[str] | None = None):
     parser.add_argument("--base", help="recording of --start, if one exists already")
     parser.add_argument("--agents", type=int, default=3)
     parser.add_argument("--rounds", type=int, default=4)
-    parser.add_argument("--model", default="claude-haiku-5-5")
+    parser.add_argument("--model", default="claude-haiku-5-5", help="model id, or a comma-separated list the agents take turns with")
     parser.add_argument("--metric", choices=("error", "geometry"), default="error")
     parser.add_argument("--slots", default="1", help="comma-separated simulator slots to record in parallel")
     parser.add_argument("--run", default=time.strftime("%m%d-%H%M"))
@@ -177,18 +183,20 @@ def main(argv: list[str] | None = None):
             name = f"r{number}a{k}"
             tree = run / "trees" / name
             git("worktree", "add", "-q", "-B", f"{branch}-{name}", str(tree), head)
-            trees.append((name, tree, prompt(step, details, strip, history, k, args.agents)))
+            models = args.model.split(",")
+            trees.append((name, tree, models[(k - 1) % len(models)],
+                          prompt(step, details, strip, history, LEVERS[(k - 1) % len(LEVERS)])))
 
         def attempt(job) -> Trial:
-            name, tree, text = job
+            name, tree, model, text = job
             began = time.time()
-            change = agent(tree, text, args.model, here, here / f"{name}.txt")
-            trial = Trial(name, number, move, None, change)
+            change = agent(tree, text, model, here, here / f"{name}.txt")
+            trial = Trial(name, number, move, None, change, model=model)
             if not git("status", "--porcelain", "--untracked-files=no", cwd=tree):
                 trial.change = f"no change ({change})"
                 return trial
             git("commit", "-qam", f"Parity loop {args.run} {name}, move {move}: {change}\n\n"
-                f"Co-Authored-By: {NAMES.get(args.model, args.model)} <noreply@anthropic.com>", cwd=tree)
+                f"Co-Authored-By: {NAMES.get(model, model)} <noreply@anthropic.com>", cwd=tree)
             trial.commit = git("rev-parse", "HEAD", cwd=tree)
             out = here / f"{name}.mov"
             if recorded(tree, out):
@@ -212,8 +220,9 @@ def main(argv: list[str] | None = None):
             history.append(trial)
             with log.open("a") as f:
                 f.write(json.dumps(asdict(trial)) + "\n")
-            print(f"round {number} move {move} {trial.name}: {trial.objective:6.2f}{'  kept' if trial.accepted else ''}  {trial.change}", flush=True)
-        for _, tree, _ in trees:
+            print(f"round {number} move {move} {trial.name} ({trial.model}): {trial.objective:6.2f}"
+                  f"{'  kept' if trial.accepted else ''}  {trial.change}", flush=True)
+        for _, tree, _, _ in trees:
             git("worktree", "remove", "--force", str(tree))
         print(f"round {number}: best {args.metric} {best:.2f} at {head[:8]} {scores}\n", flush=True)
 

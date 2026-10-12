@@ -4,7 +4,7 @@ import numpy as np
 
 from .measure import GRID, LEAD, MOVING, Take, Tracks, sample, tracks
 
-TAIL = 0.15
+TAIL = 0.25
 SEEN = 0.6
 
 
@@ -44,8 +44,13 @@ def compare(name: str, ref: Take, cand: Take, pt: float) -> Result:
     error = np.abs(a - b).sum(axis=1) / total
     progress = (a @ da / max(da @ da, 1e-6), b @ db / max(db @ db, 1e-6))
     things, geometry = pair(tracks(ref, grid, pt), tracks(cand, grid, pt))
-    lead = [travel(things[0]["ref"], things[0]["direction"]), travel(things[0]["cand"], things[0]["direction"])] if things else progress
-    timing = {"settle": [round(ref.settle, 3), round(cand.settle, 3)], "half": [half(grid, lead[0]), half(grid, lead[1])]}
+    if things:
+        lead = things[0]
+        shares = [travel(lead[side], lead["direction"]) for side in ("ref", "cand")]
+        rest = [settled(grid, lead[side], lead["direction"]) for side in ("ref", "cand")]
+    else:
+        shares, rest = progress, [round(ref.settle, 3), round(cand.settle, 3)]
+    timing = {"settle": rest, "half": [half(grid, shares[0]), half(grid, shares[1])]}
     return Result(name, float(error.mean() * 100), geometry, [ref.dropped, cand.dropped], timing,
                   Curves(grid, progress, error, things))
 
@@ -56,6 +61,14 @@ def travel(offset: np.ndarray, direction: str) -> np.ndarray:
     if not len(seen) or not seen[-1 if direction == "from start" else 0]:
         return np.zeros_like(offset)
     return offset / seen[-1] if direction == "from start" else 1 - offset / seen[0]
+
+
+def settled(grid: np.ndarray, offset: np.ndarray, direction: str) -> float:
+    """When a moving thing came within a point of where it ends and stayed."""
+    seen = ~np.isnan(offset)
+    final = offset[seen][-1] if direction == "from start" and seen.any() else 0.0
+    away = np.flatnonzero(seen & (np.abs(offset - final) > 1))
+    return round(float(grid[min(away[-1] + 1, len(grid) - 1)]), 3) if len(away) else 0.0
 
 
 def half(grid: np.ndarray, progress: np.ndarray) -> float | None:

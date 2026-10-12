@@ -12,7 +12,8 @@ LEAD = 0.05
 LONGEST = 1.6
 HOLD = 0.04
 REFRESH = 1 / 60
-SETTLED = 1.5
+SETTLED = 0.5
+CHANGED = 4.0
 HALF = 16
 STEP = 6
 TEXTURE = 2.0
@@ -55,7 +56,8 @@ def take(f: Features, event: Event, next_onset: float | None) -> Take:
     calm = ~event.busy
     change = np.abs(thumbs - thumbs[0])[:, calm].sum(axis=1) / max(np.abs(thumbs[-1] - thumbs[0])[calm].sum(), 1.0)
     onset = start(times, change)
-    still = np.abs(thumbs - thumbs[-1])[:, calm].mean(axis=1) < SETTLED
+    changed = calm & (np.abs(thumbs[-1] - thumbs[0]) > CHANGED)
+    still = np.abs(thumbs - thumbs[-1])[:, changed if changed.any() else calm].mean(axis=1) < SETTLED
     moving = np.flatnonzero(~still)
     settle = (times[moving[-1] + 1] - onset) if len(moving) and moving[-1] + 1 < len(still) else first + room - onset
     times = times - onset

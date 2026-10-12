@@ -4,11 +4,14 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 from .pair import Pair
+from .score import travel
 from .video import frames
 
 COLUMNS = 12
 THUMB = 120
 REF, CAND, ERR = (40, 40, 40), (230, 70, 50), (60, 120, 220)
+SHADES = ((40, 40, 40), (120, 120, 120), (170, 170, 170))
+TINTS = ((230, 70, 50), (240, 150, 60), (240, 190, 120))
 FONT = ImageFont.load_default(size=12)
 
 
@@ -33,7 +36,8 @@ def strips(pair: Pair, out: Path, only: set[str] | None = None) -> list[Path]:
     for move in pair.moves:
         if move.result and (not only or move.step["id"] in only):
             grid = move.result.curves.times
-            picks.append((move, np.linspace(grid[0], grid[-1], COLUMNS)))
+            end = min(grid[-1], max(move.result.timing["settle"]) + 0.05)
+            picks.append((move, np.linspace(grid[0], end, COLUMNS)))
     ref = grab(pair.ref.path, [move.onsets[0] + t for move, ts in picks for t in ts])
     cand = grab(pair.cand.path, [move.onsets[1] + t for move, ts in picks for t in ts])
     out.mkdir(parents=True, exist_ok=True)
@@ -67,31 +71,39 @@ def sheet(move, ts, a: list[np.ndarray], b: list[np.ndarray]) -> Image.Image:
 
 
 def plot(draw: ImageDraw.ImageDraw, curves, box):
-    """Progress of the whole change (0 before, 1 settled) for both takes, the step error, and the main moving
-    things' displacement in points on a second scale."""
+    """Each main moving thing's share of its way (0 where it starts, 1 where it ends, above 1 overshoot),
+    reference in grey, candidate in red, and the step error in blue. Without moving things, the share of
+    the whole change."""
     x0, y0, x1, y1 = box
     t = curves.times
-    half = (y0 + y1) // 2
+    top, bottom = y0 + 18 + 14 * min(3, max(1, len(curves.things))), y1 - 6
     px = lambda v: x0 + (v - t[0]) / (t[-1] - t[0]) * (x1 - x0)
+    py = lambda v: bottom - (np.clip(v, -0.2, 1.3) + 0.2) / 1.5 * (bottom - top)
     draw.rectangle(box, outline=(200, 200, 200))
-    draw.line([(x0, half), (x1, half)], fill=(225, 225, 225))
+    for level in (0, 1):
+        draw.line([(x0, py(level)), (x1, py(level))], fill=(225, 225, 225))
+    zero = px(0)
+    draw.line([(zero, top), (zero, bottom)], fill=(225, 225, 225))
 
-    def line(values, top, bottom, low, high, color, dash=False):
-        points = [(px(tt), bottom - (v - low) / (high - low) * (bottom - top)) for tt, v in zip(t, values) if np.isfinite(v)]
-        for k, (p, q) in enumerate(zip(points, points[1:])):
-            if not dash or k % 4 < 2:
-                draw.line([p, q], fill=color, width=2)
+    def line(values, color, width=2):
+        points = [(px(tt), py(v)) for tt, v in zip(t, values) if np.isfinite(v)]
+        if len(points) > 1:
+            draw.line(points, fill=color, width=width)
 
-    line(curves.progress[0], y0 + 14, half - 4, -0.1, 1.2, REF)
-    line(curves.progress[1], y0 + 14, half - 4, -0.1, 1.2, CAND, dash=True)
-    line(curves.error, y0 + 14, half - 4, -0.1, 1.2, ERR)
-    draw.text((x0 + 4, y0 + 2), "progress: reference (solid), candidate (dashed); blue = step error", fill=REF, font=FONT)
-    things = curves.things[:3]
-    if things:
-        span = max(np.nanmax(np.abs(np.r_[th["ref"], th["cand"]])) for th in things) or 1
-        for k, th in enumerate(things):
-            shade = tuple(int(c * (0.4 + 0.3 * k)) for c in (1, 1, 1))
-            line(th["ref"], half + 16, y1 - 4, -span, span, REF)
-            line(th["cand"], half + 16, y1 - 4, -span, span, CAND, dash=True)
-            draw.text((x0 + 4, half + 2 + 0), f"moving things (pt, ±{span:.0f}): " + "; ".join(
-                f"{th['axis']} {th['direction']} at {th['span'][0]:.0f}-{th['span'][1]:.0f} pt ({th['error']:.1f} pt off)" for th in things), fill=REF, font=FONT)
+    line(curves.error, ERR, 1)
+    if curves.things:
+        legend = []
+        for k, th in enumerate(curves.things[:3]):
+            line(travel(th["ref"], th["direction"]), SHADES[k])
+            line(travel(th["cand"], th["direction"]), TINTS[k])
+            seen = th["ref"][np.isfinite(th["ref"])]
+            moved = seen[-1] - seen[0] if len(seen) else 0
+            legend.append(f"{th['axis']} {th['span'][0]:.0f}-{th['span'][1]:.0f} pt moves {moved:+.0f} pt ({th['direction']}), "
+                          f"{th['error']:.1f} pt off")
+    else:
+        line(curves.progress[0], SHADES[0])
+        line(curves.progress[1], TINTS[0])
+        legend = ["share of the whole change (no moving content tracked)"]
+    draw.text((x0 + 4, y0 + 3), "share of the way: reference grey, candidate red; blue = step error", fill=REF, font=FONT)
+    for k, text in enumerate(legend):
+        draw.text((x0 + 4, y0 + 17 + 14 * k), f"{k + 1}. {text}", fill=SHADES[k] if curves.things else REF, font=FONT)
