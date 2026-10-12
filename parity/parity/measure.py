@@ -24,8 +24,8 @@ MOVING = 3.0
 
 @dataclass
 class Take:
-    """One recording's view of one move: frames from just before onset until the next move, plus the same
-    resampled onto a fixed grid of times after onset."""
+    """One recording's view of one move: its frames from the one before the move until just before the next,
+    timed from the start of the main motion."""
 
     times: np.ndarray
     thumbs: np.ndarray
@@ -158,9 +158,13 @@ def tracks(t: Take, grid: np.ndarray, pt: float) -> Tracks:
 
 
 def sample_tracked(times: np.ndarray, values: np.ndarray, grid: np.ndarray) -> np.ndarray:
+    """A track on the grid: blank before it was found and after it was lost, held after the last frame,
+    since a still screen sends no frames."""
     good = ~np.isnan(values)
     if good.sum() < 2:
         return np.full(len(grid), np.nan)
     out = sample(times[good], values[good], grid)
-    out[(grid < times[good][0]) | (grid > times[good][-1])] = np.nan
+    out[grid < times[good][0]] = np.nan
+    if not good[-1]:
+        out[grid > times[good][-1]] = np.nan
     return out

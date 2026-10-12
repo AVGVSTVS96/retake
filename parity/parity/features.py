@@ -8,7 +8,7 @@ import numpy as np
 
 from .video import POINTS, WIDTH, frames
 
-VERSION = 4
+VERSION = 5
 CACHE = Path(__file__).resolve().parent.parent / ".cache"
 CELL = 8
 BANDS = 3
@@ -97,9 +97,10 @@ def load(path: str) -> Features:
     cached = CACHE / f"{key}.npz"
     if cached.exists():
         with np.load(cached) as data:
-            return Features(path, data["times"], data["thumbs"], data["rows"], data["cols"], int(data["dropped"]))
+            return Features(path, data["times"], data["thumbs"].astype(np.float32), data["rows"].astype(np.float32),
+                            data["cols"].astype(np.float32), int(data["dropped"]))
     features = extract(path)
     CACHE.mkdir(exist_ok=True)
-    np.savez(cached, times=features.times, thumbs=features.thumbs, rows=features.rows, cols=features.cols,
-             dropped=features.dropped)
-    return features
+    np.savez(cached, times=features.times, thumbs=np.round(features.thumbs).astype(np.uint8),
+             rows=features.rows.astype(np.float16), cols=features.cols.astype(np.float16), dropped=features.dropped)
+    return load(path)

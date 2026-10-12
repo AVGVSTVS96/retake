@@ -44,13 +44,13 @@ def compare(name: str, ref: Take, cand: Take, pt: float) -> Result:
     error = np.abs(a - b).sum(axis=1) / total
     progress = (a @ da / max(da @ da, 1e-6), b @ db / max(db @ db, 1e-6))
     things, geometry = pair(tracks(ref, grid, pt), tracks(cand, grid, pt))
+    timing = {"settle": [round(ref.settle, 3), round(cand.settle, 3)], "half": [half(grid, p) for p in progress]}
     if things:
         lead = things[0]
         shares = [travel(lead[side], lead["direction"]) for side in ("ref", "cand")]
-        rest = [settled(grid, lead[side], lead["direction"]) for side in ("ref", "cand")]
-    else:
-        shares, rest = progress, [round(ref.settle, 3), round(cand.settle, 3)]
-    timing = {"settle": rest, "half": [half(grid, shares[0]), half(grid, shares[1])]}
+        timing = {"settle": [settled(grid, lead[side], lead["direction"]) for side in ("ref", "cand")],
+                  "half": [half(grid, share) for share in shares],
+                  "overshoot": [overshoot(share, lead[side]) for share, side in zip(shares, ("ref", "cand"))]}
     return Result(name, float(error.mean() * 100), geometry, [ref.dropped, cand.dropped], timing,
                   Curves(grid, progress, error, things))
 
@@ -69,6 +69,13 @@ def settled(grid: np.ndarray, offset: np.ndarray, direction: str) -> float:
     final = offset[seen][-1] if direction == "from start" and seen.any() else 0.0
     away = np.flatnonzero(seen & (np.abs(offset - final) > 1))
     return round(float(grid[min(away[-1] + 1, len(grid) - 1)]), 3) if len(away) else 0.0
+
+
+def overshoot(share: np.ndarray, offset: np.ndarray) -> float:
+    """How far past its end a moving thing went, in points."""
+    seen = offset[~np.isnan(offset)]
+    span = np.ptp(seen) if len(seen) else 0
+    return round(float(max(np.nanmax(share, initial=1) - 1, 0) * span), 1)
 
 
 def half(grid: np.ndarray, progress: np.ndarray) -> float | None:

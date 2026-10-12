@@ -75,7 +75,9 @@ def describe(pair: Pair, move_id: str, metric: str) -> str:
     ms = lambda v: "never" if v is None else f"{v * 1000:.0f} ms"
     lines = [f"error {r.error:.1f}% (0 = identical), geometry {r.geometry:.1f} pt; scoring on {metric}",
              f"halfway at {ms(r.timing['half'][0])} in the reference vs {ms(r.timing['half'][1])} "
-             f"in ours; settled at {ms(r.timing['settle'][0])} vs {ms(r.timing['settle'][1])}",
+             f"in ours; settled within 1 pt at {ms(r.timing['settle'][0])} vs {ms(r.timing['settle'][1])}"
+             + (f"; overshoot past the end {r.timing['overshoot'][0]:.1f} pt vs {r.timing['overshoot'][1]:.1f} pt"
+                if "overshoot" in r.timing else ""),
              ]
     if not c.things:
         lines += ["overall change done (0 = start, 1 = settled), reference / ours:",
@@ -108,6 +110,16 @@ Already tried from earlier rounds (score for this move, lower is better):
 Change the animation values behind this move so ours matches the reference: faster or slower, more or less overshoot, earlier or later. Other attempts run alongside you from the same code, so stick to your lever: {lever}. Change only what this move needs, keep it compiling with the iOS 27 SDK, and add no comments.
 
 Finish with one line: what you changed, from what value to what value."""
+
+
+def edit(tree: Path) -> str:
+    """The experiment in one line, from its diff: each changed line as old -> new."""
+    lines = git("diff", "-U0", cwd=tree).splitlines()
+    removed = [l[1:].strip() for l in lines if l.startswith("-") and not l.startswith("---")]
+    added = [l[1:].strip() for l in lines if l.startswith("+") and not l.startswith("+++")]
+    files = sorted({l.split(" b/")[-1].split("/")[-1] for l in lines if l.startswith("diff --git")})
+    pairs = [f"{a} -> {b}" for a, b in zip(removed, added)] + removed[len(added):] + added[len(removed):]
+    return f"{', '.join(files)}: {'; '.join(pairs)}"[:400]
 
 
 def agent(tree: Path, text: str, model: str, extra: Path, transcript: Path) -> str:
@@ -195,7 +207,8 @@ def main(argv: list[str] | None = None):
             if not git("status", "--porcelain", "--untracked-files=no", cwd=tree):
                 trial.change = f"no change ({change})"
                 return trial
-            git("commit", "-qam", f"Parity loop {args.run} {name}, move {move}: {change}\n\n"
+            trial.change = edit(tree)
+            git("commit", "-qam", f"Parity loop {args.run} {name}, move {move}: {trial.change}\n\n"
                 f"Co-Authored-By: {NAMES.get(model, model)} <noreply@anthropic.com>", cwd=tree)
             trial.commit = git("rev-parse", "HEAD", cwd=tree)
             out = here / f"{name}.mov"

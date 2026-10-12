@@ -5,7 +5,9 @@ from pathlib import Path
 
 import numpy as np
 
-from .pair import Pair, score
+from .features import load
+from .moves import events, script
+from .pair import Pair, score, scripted
 from .render import strips
 
 
@@ -51,15 +53,30 @@ def table(pair: Pair) -> str:
     return "\n".join(lines)
 
 
+def bursts(path: str) -> str:
+    """Every burst of motion the segmenter found in a recording, and the script move each one became."""
+    f = load(path)
+    matched = {e[0].onset: step["id"] for step, e in zip(script(), scripted(f)) if e}
+    lines = [f"{path}: {len(f.times)} frames over {f.times[-1]:.1f} s, {f.dropped} repeated or glitched frames dropped"]
+    for e in events(f):
+        lines.append(f"  {f.times[e.onset]:7.2f} s  {e.footprint.sum():5d} cells  -> {matched.get(e.onset, 'extra')}")
+    missing = [step["id"] for step, e in zip(script(), scripted(f)) if not e]
+    return "\n".join(lines + ([f"  not found: {', '.join(missing)}"] if missing else []))
+
+
 def main(argv: list[str] | None = None):
     parser = argparse.ArgumentParser(prog="parity", description="Scores how closely one recording of the parity "
                                      "script moves like another.")
     parser.add_argument("reference")
-    parser.add_argument("candidate")
+    parser.add_argument("candidate", nargs="?")
     parser.add_argument("--out", type=Path, help="write score.json, curves.json and a frame strip per move here")
     parser.add_argument("--moves", help="comma-separated move ids to score, e.g. 1,2,4a")
     parser.add_argument("--json", action="store_true", help="print the summary as JSON instead of a table")
+    parser.add_argument("--events", action="store_true", help="list the bursts found in each recording and the move each became")
     args = parser.parse_args(argv)
+    if args.events or not args.candidate:
+        print("\n\n".join(bursts(path) for path in (args.reference, args.candidate) if path))
+        return
     pair = score(args.reference, args.candidate, set(args.moves.split(",")) if args.moves else None)
     report = summary(pair)
     if args.out:
