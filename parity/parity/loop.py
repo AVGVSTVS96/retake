@@ -45,6 +45,7 @@ class Trial:
     model: str = ""
     agent: int = 0
     round_kept: bool = False
+    takes: list = field(default_factory=list)
     scores: dict = field(default_factory=dict)
     objective: float = float("inf")
     accepted: bool = False
@@ -61,11 +62,15 @@ def record(tree: Path, out: Path, slot: str) -> bool:
     return done.returncode == 0 and out.exists()
 
 
-def objective(pair: Pair, moves: list[str], metric: str) -> tuple[float, dict]:
-    scores = {}
-    for move in pair.moves:
-        if move.step["id"] in moves and move.result:
-            scores[move.step["id"]] = round(move.result.error if metric == "error" else move.result.geometry, 2)
+def objective(pairs: list[Pair], moves: list[str], metric: str) -> tuple[float, dict]:
+    """Mean over the tuned moves of each move's median across takes: one take now and then lands a frame
+    late mid-move, and a median of three ignores it."""
+    seen: dict[str, list[float]] = {}
+    for pair in pairs:
+        for move in pair.moves:
+            if move.step["id"] in moves and move.result:
+                seen.setdefault(move.step["id"], []).append(move.result.error if metric == "error" else move.result.geometry)
+    scores = {m: round(float(np.median(v)), 2) for m, v in seen.items()}
     return (float(np.mean(list(scores.values()))) if len(scores) == len(moves) else float("inf")), scores
 
 
@@ -143,7 +148,8 @@ def main(argv: list[str] | None = None):
     parser.add_argument("--target", required=True, help="reference recording of the parity script")
     parser.add_argument("--moves", help="comma-separated move ids to tune (default: all)")
     parser.add_argument("--start", default="HEAD", help="commit to tune from")
-    parser.add_argument("--base", help="recording of --start, if one exists already")
+    parser.add_argument("--base", help="recordings of --start, if they exist already (comma-separated)")
+    parser.add_argument("--takes", type=int, default=1, help="record each candidate this many times and use the median")
     parser.add_argument("--agents", type=int, default=3)
     parser.add_argument("--rounds", type=int, default=4)
     parser.add_argument("--model", default="claude-haiku-5-5", help="model id, or a comma-separated list the agents take turns with")
@@ -172,16 +178,22 @@ def main(argv: list[str] | None = None):
         finally:
             slots.put(slot)
 
-    base = Path(args.base) if args.base else run / "head-0.mov"
-    if not args.base:
+    def takes(tree: Path, stem: Path) -> list[Path]:
+        outs = [stem.with_name(f"{stem.name}-{k}.mov") if args.takes > 1 else stem.with_suffix(".mov") for k in range(args.takes)]
+        return [out for out in outs if recorded(tree, out)]
+
+    if args.base:
+        bases = [Path(b) for b in args.base.split(",")]
+    else:
         tree = run / "trees" / "head-0"
         git("worktree", "add", "-q", "--detach", str(tree), head)
-        ok = recorded(tree, base)
+        bases = takes(tree, run / "head-0")
         git("worktree", "remove", "--force", str(tree))
-        if not ok:
-            raise SystemExit(f"could not record {head}: see {base.with_suffix('.log')}")
-    pair = score(args.target, str(base), set(moves))
-    best, scores = objective(pair, moves, args.metric)
+        if not bases:
+            raise SystemExit(f"could not record {head}: see {run}/head-0*.log")
+    pairs = [score(args.target, str(b), set(moves)) for b in bases]
+    pair = pairs[0]
+    best, scores = objective(pairs, moves, args.metric)
     print(f"start {head[:8]}: {args.metric} {best:.2f} {scores}\n{table(pair)}\n", flush=True)
     history: list[Trial] = []
     stuck: set[str] = set()
@@ -215,9 +227,10 @@ def main(argv: list[str] | None = None):
             git("commit", "-qam", f"Parity loop {args.run} {name}, move {move}: {trial.change}\n\n"
                 f"Co-Authored-By: {NAMES.get(model, model)} <noreply@anthropic.com>", cwd=tree)
             trial.commit = git("rev-parse", "HEAD", cwd=tree)
-            out = here / f"{name}.mov"
-            if recorded(tree, out):
-                trial.objective, trial.scores = objective(score(args.target, str(out), set(moves)), moves, args.metric)
+            outs = takes(tree, here / name)
+            if outs:
+                trial.objective, trial.scores = objective([score(args.target, str(o), set(moves)) for o in outs], moves, args.metric)
+                trial.takes = [str(o) for o in outs]
             trial.seconds = round(time.time() - began, 1)
             return trial
 
@@ -228,7 +241,7 @@ def main(argv: list[str] | None = None):
             winner.accepted = True
             head, best = winner.commit, winner.objective
             git("branch", "-f", branch, head)
-            pair = score(args.target, str(here / f"{winner.name}.mov"), set(moves))
+            pair = score(args.target, winner.takes[0], set(moves))
             scores = winner.scores
             stuck.clear()
         else:

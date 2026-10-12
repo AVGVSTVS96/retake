@@ -8,7 +8,7 @@ import numpy as np
 
 from .video import POINTS, WIDTH, frames
 
-VERSION = 5
+VERSION = 6
 CACHE = Path(__file__).resolve().parent.parent / ".cache"
 CELL = 8
 BANDS = 3
@@ -71,23 +71,22 @@ def fresh(times: np.ndarray, thumbs: np.ndarray) -> np.ndarray:
 def retime(times: np.ndarray) -> np.ndarray:
     """Puts frames back on the display's refresh grid. The app renders each animation frame for a vsync, but
     simctl stamps it whenever the capture lands, up to a frame late, so two takes of the same build show
-    identical states at jittered times. Within a burst every frame is one or more refreshes after the last;
-    a burst that doesn't fit a 60 or 120 Hz grid keeps its timestamps."""
+    identical states at jittered times. Each frame snaps to its burst's grid; a capture late enough to land
+    in the next frame's slot moves back one, and a frame that fits no slot keeps its stamp."""
     out = times.copy()
-    gaps = np.diff(times)
-    starts = np.flatnonzero(np.r_[True, gaps > 0.045])
+    starts = np.flatnonzero(np.r_[True, np.diff(times) > 0.045])
     for a, b in zip(starts, [*starts[1:], len(times)]):
         if b - a < 3:
             continue
-        burst = times[a:b] - times[a]
-        typical = np.median(np.diff(burst))
-        period = min((1 / 60, 1 / 120), key=lambda p: abs(p - typical))
-        steps = np.zeros(b - a, int)
-        for k in range(1, b - a):
-            steps[k] = max(steps[k - 1] + 1, round(burst[k] / period))
-        residual = burst - steps * period
-        if np.ptp(residual) < period:
-            out[a:b] = times[a] + steps * period + np.median(residual)
+        burst = times[a:b]
+        period = min((1 / 60, 1 / 120), key=lambda p: abs(p - np.median(np.diff(burst))))
+        turn = 2 * np.pi * ((burst - burst[0]) % period) / period
+        phase = burst[0] + np.angle(np.exp(1j * turn).mean()) / (2 * np.pi) * period
+        slots = np.round((burst - phase) / period)
+        for k in range(len(slots) - 2, -1, -1):
+            slots[k] = min(slots[k], slots[k + 1] - 1)
+        snapped = phase + slots * period
+        out[a:b] = np.where(np.abs(snapped - burst) < period, snapped, burst)
     return np.maximum.accumulate(out)
 
 
