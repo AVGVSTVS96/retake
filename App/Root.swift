@@ -30,13 +30,14 @@ struct PhoneRoot: View {
                 .navigationDestination(for: Scope.self) { RecordingsList(scope: $0) }
         }
         .overlay(alignment: .bottom) {
-            if let scope = path.last, scope != .deleted {
+            if let scope = path.last, scope != .deleted, !session.isSelecting {
                 RecordButton()
                     .matchedTransitionSource(id: TransitionID.record, in: transition)
                     .padding(.bottom, 6)
                     .transition(.opacity)
             }
         }
+        .animation(.easeInOut(duration: 0.2), value: session.isSelecting)
         .onChange(of: recorder.phase) { old, phase in
             if old == .idle, phase == .recording, recorder.replacing == nil, session.sheet == nil {
                 session.expanded = nil

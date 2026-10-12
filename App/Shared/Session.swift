@@ -27,6 +27,7 @@ final class Session {
     var renaming: Recording.ID?
     var editing: Recording.ID?
     var query = ""
+    var isSelecting = false
 }
 
 extension Library {

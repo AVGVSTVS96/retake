@@ -187,8 +187,8 @@ public final class Player {
     private func activateSession() {
         #if os(iOS)
         let session = AVAudioSession.sharedInstance()
-        if session.category != .playAndRecord {
-            try? session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetoothHFP, .allowBluetoothA2DP])
+        if session.category != .playback {
+            try? session.setCategory(.playback, mode: .default)
         }
         try? session.setActive(true)
         #endif

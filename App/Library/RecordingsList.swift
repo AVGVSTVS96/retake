@@ -92,6 +92,10 @@ struct RecordingsList: View {
         .onChange(of: session.renaming) { _, id in
             newTitle = id.flatMap { library.recording($0)?.title } ?? ""
         }
+        .onChange(of: editMode.isEditing, initial: true) { _, editing in
+            session.isSelecting = editing
+        }
+        .onDisappear { session.isSelecting = false }
         .onChange(of: session.expanded) { _, id in
             guard let id, let recording = library.recording(id) else { return }
             player.load(recording, url: library.url(for: recording), peaks: library.peaks[id] ?? [])

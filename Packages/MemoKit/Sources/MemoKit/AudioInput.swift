@@ -38,6 +38,9 @@ public final class MicInput: AudioInput, @unchecked Sendable {
         engine.inputNode.removeTap(onBus: 0)
         engine.stop()
         sink = nil
+        #if os(iOS)
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+        #endif
     }
 
     private func run() throws {
