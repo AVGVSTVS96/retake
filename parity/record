@@ -1,0 +1,11 @@
+#!/bin/bash
+# Records the parity script from any source tree in its own simulator slot on the Mac.
+# Usage: parity/record <tree> <out.mov> [slot]
+set -euo pipefail
+tree=$(realpath "$1") out=$(realpath -m "$2") slot=${3:-1}
+dest=Developer/retake-parity/$slot
+rsync -a --delete --exclude /build --exclude .build --exclude /shots --exclude /reference --exclude .git \
+  --exclude .venv --exclude .cache --exclude /parity/runs "$tree/" "mac:$dest/"
+ssh mac "cd ~/$dest && SLOT=$slot parity/sim parity/take.mov build"
+mkdir -p "$(dirname "$out")"
+rsync -a "mac:$dest/parity/take.mov" "$out"

@@ -1,0 +1,32 @@
+#!/bin/bash
+# Runs on the Mac. Builds for testing, then screen-records the parity script in its own simulator.
+# Usage: parity/sim <out.mov> [build]
+set -euo pipefail
+cd "$(dirname "$0")/.."
+source scripts/sim-lib
+out=$1
+id=$(ensure "parity ${SLOT:-1}" iPhone-16-Pro-Max)
+xcrun simctl bootstatus "$id" -b >/dev/null
+xcrun simctl status_bar "$id" override --time 9:41 --batteryState charged --batteryLevel 100 --wifiBars 3 --cellularBars 4 >/dev/null 2>&1 || true
+xcrun simctl privacy "$id" grant microphone "$BUNDLE" >/dev/null 2>&1 || true
+xcrun simctl ui "$id" appearance light
+
+xcodebuild=(xcodebuild -project Retake.xcodeproj -scheme Retake -destination "id=$id" -derivedDataPath build)
+if [ "${2:-}" = build ]; then
+  xcodegen generate -q
+  if ! log=$("${xcodebuild[@]}" -quiet build-for-testing 2>&1); then
+    grep -E "error" <<<"$log" | head -20 >&2
+    exit 1
+  fi
+fi
+
+rm -f "$out"
+xcrun simctl io "$id" recordVideo --codec h264 --force "$out" >/dev/null 2>&1 &
+recorder=$!
+sleep 1
+result=$("${xcodebuild[@]}" test-without-building -only-testing:RetakeUITests/ParityScript/testParityScript 2>&1 \
+  | grep -E "error:|Test Case.*(passed|failed)" || true)
+kill -INT $recorder
+wait $recorder 2>/dev/null || true
+echo "$result"
+grep -q passed <<<"$result" && test -s "$out"

@@ -1,0 +1,18 @@
+[
+  {"id": "1", "name": "tap row 1: expand", "files": ["App/Library/RecordingRow.swift", "App/Library/RecordingsList.swift"]},
+  {"id": "2", "name": "tap row 2: switch", "files": ["App/Library/RecordingRow.swift", "App/Library/RecordingsList.swift"]},
+  {"id": "3", "name": "tap row 2: collapse", "files": ["App/Library/RecordingRow.swift", "App/Library/RecordingsList.swift"]},
+  {"id": "4a", "name": "tap row 1: expand", "files": ["App/Library/RecordingRow.swift", "App/Library/RecordingsList.swift"]},
+  {"id": "4b", "name": "… menu opens", "files": ["App/Library/RecordingMenu.swift"]},
+  {"id": "4c", "name": "tap outside: menu closes", "files": ["App/Library/RecordingMenu.swift"]},
+  {"id": "5", "name": "record: card rises", "files": ["App/Record/RecordButton.swift", "App/Record/RecordSheet.swift", "App/Root.swift"]},
+  {"id": "6", "name": "swipe card up: full sheet", "files": ["App/Record/RecordSheet.swift", "App/Record/FullRecorder.swift"]},
+  {"id": "7a", "name": "pause", "files": ["App/Record/FullRecorder.swift"]},
+  {"id": "7b", "name": "resume", "files": ["App/Record/FullRecorder.swift"]},
+  {"id": "8", "name": "✓ Done: sheet folds away, row appears", "files": ["App/Record/RecordSheet.swift", "App/Root.swift", "App/Library/RecordingsList.swift"]},
+  {"id": "9a", "name": "Select", "files": ["App/Library/RecordingsList.swift", "App/Root.swift"]},
+  {"id": "9b", "name": "tick row 1", "files": ["App/Library/RecordingsList.swift"]},
+  {"id": "9c", "name": "Done: leave Select", "files": ["App/Library/RecordingsList.swift", "App/Root.swift"]},
+  {"id": "10a", "name": "back to Voice Memos", "files": ["App/Library/FoldersView.swift", "App/Root.swift"]},
+  {"id": "10b", "name": "All Recordings", "files": ["App/Library/FoldersView.swift", "App/Root.swift"]}
+]

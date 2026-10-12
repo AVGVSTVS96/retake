@@ -1,0 +1,14 @@
+[project]
+name = "parity"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "av>=19.0.1",
+    "numpy>=2.2",
+    "opencv-python-headless>=4.11",
+    "pillow>=11",
+    "scipy>=1.18.1",
+]
+
+[tool.uv]
+package = false

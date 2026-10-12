@@ -1,0 +1,5 @@
+#!/bin/bash
+# Scores a candidate recording of the parity script against a reference. See parity/README.md.
+# Usage: parity/score <reference.mov> <candidate.mov> [--out dir] [--moves 1,2] [--json]
+cd "$(dirname "$0")"
+exec systemd-run --user --scope -q -p MemoryMax=3G -p MemorySwapMax=0 -- uv run -q python -W ignore -m parity "$@"
