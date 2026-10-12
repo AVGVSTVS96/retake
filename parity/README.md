@@ -31,7 +31,7 @@ The agents run `claude -p --restricted`: no shell, file tools confined to their 
 
 ## How it works
 
-**The script.** `UITests/ParityScript.swift` is Bassim's fixed script (expand, switch, collapse, menu, record, full sheet, pause, resume, Done, Select, tick, Done, back, All Recordings) with a second of rest between moves. `script.json` names the 16 moves and the files behind each; `script.npz` holds where on screen each move changes things, taken from a clean simulator take.
+**The script.** `UITests/ParityScript.swift` is the fixed script recorded on device (expand, switch, collapse, menu, record, full sheet, pause, resume, Done, Select, tick, Done, back, All Recordings) with a second of rest between moves. `script.json` names the 16 moves and the files behind each; `script.npz` holds where on screen each move changes things, taken from a clean simulator take.
 
 **Frames.** Every frame is decoded at 2 pt per pixel with its real timestamp. Frames the recorder repeated are dropped, and so is a single frame that jumps away from both neighbours while they agree, or jumps back to a copy of an earlier frame (simctl emits both on a loaded Mac). Then each frame is snapped to its burst's 60 or 120 Hz refresh grid, and a capture late enough to land in the next frame's slot moves back one: the simulator renders identical animation states run to run, but stamps them with up to a frame of capture jitter.
 

@@ -1,6 +1,6 @@
 import XCTest
 
-/// The fixed script Bassim records on device in both Voice Memos and retake (parity/README.md).
+/// The fixed script recorded on device in both Voice Memos and retake (parity/README.md).
 /// Every move is followed by a one-second rest so the scorer can split the recording into moves.
 final class ParityScript: XCTestCase {
     @MainActor
