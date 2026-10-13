@@ -2,24 +2,32 @@ import XCTest
 
 /// The fixed script recorded on device in both Voice Memos and retake (parity/README.md).
 /// Every move is followed by a one-second rest so the scorer can split the recording into moves.
+/// Rows are found by position, so the script runs on the demo library or on a fixture of the reference's.
 final class ParityScript: XCTestCase {
     @MainActor
     func testParityScript() {
         continueAfterFailure = false
         let app = XCUIApplication()
         app.launchArguments = ["-demo"]
+        app.launchEnvironment["DEMO_FIXTURE"] = ProcessInfo.processInfo.environment["DEMO_FIXTURE"]
         app.launch()
-        XCTAssertTrue(app.staticTexts["Chorus idea"].waitForExistence(timeout: 30))
+        let rows = app.collectionViews.firstMatch.cells
+        XCTAssertTrue(rows.firstMatch.waitForExistence(timeout: 30))
         rest(2)
 
-        app.staticTexts["Chorus idea"].tap()
+        title(rows.element(boundBy: 0)).tap()
         rest()
-        app.staticTexts["Standup notes"].tap()
+        title(rows.element(boundBy: 1)).tap()
         rest()
-        app.staticTexts["Standup notes"].tap()
+        rows.element(boundBy: 1).textFields.firstMatch.tap()
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 2))
+        rest()
+        app.typeText("\n")
+        rest()
+        besideDate(rows.element(boundBy: 1)).tap()
         rest()
 
-        app.staticTexts["Chorus idea"].tap()
+        title(rows.element(boundBy: 0)).tap()
         rest()
         app.buttons["More"].firstMatch.tap()
         rest()
@@ -39,12 +47,19 @@ final class ParityScript: XCTestCase {
         app.buttons["Resume"].tap()
         rest()
         app.buttons["Done"].firstMatch.tap()
-        XCTAssertTrue(app.staticTexts["New Recording"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["Pause"].waitForNonExistence(timeout: 2))
+        rest()
+
+        app.buttons["Record"].tap()
+        XCTAssertTrue(stop.waitForExistence(timeout: 2))
+        rest(3)
+        stop.tap()
+        XCTAssertTrue(stop.waitForNonExistence(timeout: 2))
         rest()
 
         app.buttons["Select"].tap()
         rest()
-        app.staticTexts["New Recording"].coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0.5)).withOffset(CGVector(dx: -26, dy: 0)).tap()
+        title(rows.element(boundBy: 0)).coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0.5)).withOffset(CGVector(dx: -26, dy: 0)).tap()
         XCTAssertTrue(app.staticTexts["1 Selected"].waitForExistence(timeout: 2))
         rest()
         app.buttons["Done"].firstMatch.tap()
@@ -54,6 +69,15 @@ final class ParityScript: XCTestCase {
         rest()
         app.staticTexts["All Recordings"].tap()
         rest(1.5)
+    }
+
+    private func title(_ row: XCUIElement) -> XCUIElement {
+        row.staticTexts.firstMatch
+    }
+
+    /// A spot on the row's date line, clear of the title, which renames an open row instead of closing it.
+    private func besideDate(_ row: XCUIElement) -> XCUICoordinate {
+        row.textFields.firstMatch.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 1.5))
     }
 
     private func rest(_ seconds: Double = 1) {

@@ -13,17 +13,18 @@ parity/loop:  worst move ─► N agents (own worktree + branch) ─► rebuild 
 ## Run it
 
 ```sh
-parity/score reference.mov candidate.mov                 # table for all 16 moves
+parity/score reference.mov candidate.mov                 # table for all 20 moves
 parity/score reference.mov candidate.mov --out out/      # + score.json, curves.json, move-*.png
 parity/score reference.mov candidate.mov --moves 1,3,4a  # just these
 parity/score recording.mov --events                      # what the segmenter found, and which move each burst became
+parity/score clean-take.mov --template                   # rewrite script.npz after changing the script
 
-parity/record . runs/now.mov                             # build this tree on the Mac and record the script in the sim
+parity/record . runs/now.mov [slot] [fixture.json]       # build this tree on the Mac and record the script in the sim
 
 parity/loop --target reference.mov --moves 1,3,4a --agents 3 --rounds 4 --model claude-haiku-5-5
 ```
 
-`parity/score` and `parity/loop` run in their own `systemd-run` scope capped at 3 GB. Videos are decoded one frame at a time; a recording costs about 25 MB of cached features (`parity/.cache`).
+Paths are absolute: the wrappers `cd` into `parity/`. `parity/score` and `parity/loop` run in their own `systemd-run` scope capped at 3 GB. Videos are decoded one frame at a time; a recording costs about 25 MB of cached features (`parity/.cache`).
 
 `parity/loop` options: `--start` (commit to tune from, default `HEAD`), `--base` (existing recordings of `--start`, comma-separated, saves takes), `--takes 3` (record every candidate three times and use each move's median), `--metric error|geometry`, `--model a,b` (agents take turns, e.g. `claude-haiku-5-5,claude-sonnet-5-5`), `--slots 1,2` (record in two simulators at once; each slot is its own build folder on the Mac, about 1.5 GB), `--merge` (fast-forward the current branch to the winner at the end). Every experiment is a commit on `parity/<run>-r<round>a<agent>`; `parity/<run>` follows the winners. Each round's prompts, transcripts, strips and takes are in `parity/runs/<run>/round-<n>/`, and every trial is a line in `log.jsonl`.
 
@@ -31,11 +32,16 @@ The agents run `claude -p --restricted`: no shell, file tools confined to their 
 
 ## How it works
 
-**The script.** `UITests/ParityScript.swift` is the fixed script recorded on device (expand, switch, collapse, menu, record, full sheet, pause, resume, Done, Select, tick, Done, back, All Recordings) with a second of rest between moves. `script.json` names the 16 moves and the files behind each; `script.npz` holds where on screen each move changes things, taken from a clean simulator take.
+**The script.** `UITests/ParityScript.swift` is the fixed script (expand, switch, rename, Enter, collapse, menu, record, full sheet, pause, resume, Done, record again, stop, Select, tick, Done, back, All Recordings) with a second of rest between moves. It finds rows by position, so it runs on any library. `script.json` names the 20 moves and the files behind each; `script.npz` holds where on screen each move changes things, from a clean simulator take (`--template`; when the script changes, name that take's moves in `<take>.moves.json` first).
+
+**Device footage.** A screen recording made by hand repeats moves and has calls, banners and alerts in between, so it carries two sidecar files beside it:
+
+- `<video>.moves.json` picks the clean instance of each move: `{"2": 24.4, "8": [228.62, 229.25]}` is the second each move starts, and optionally when to stop watching it (before an alert, say). Moves it leaves out show as "not in reference".
+- `<video>.fixture.json` is the list that footage shows (titles, dates, durations, transcript icons, the place new recordings are named after). `parity/record` passes it to the app as `DEMO_FIXTURE`, so the simulator take shows the same rows and the error compares motion, not text. The loop picks it up from `--target`. Both files stay beside the footage, outside git.
 
 **Frames.** Every frame is decoded at 2 pt per pixel with its real timestamp. Frames the recorder repeated are dropped, and so is a single frame that jumps away from both neighbours while they agree, or jumps back to a copy of an earlier frame (simctl emits both on a loaded Mac). Then each frame is snapped to its burst's 60 or 120 Hz refresh grid, and a capture late enough to land in the next frame's slot moves back one: the simulator renders identical animation states run to run, but stamps them with up to a frame of capture jitter.
 
-**Moves.** A move starts when at least 12 cells of 8 pt change after 0.6 s of rest. Cells that keep changing on their own (the live waveform and the edge it grows into, a running timer) are busy: they can't start a move and aren't scored. The bursts are matched to the script in order by where they change the screen, so launch, Control Center and stray bursts are skipped.
+**Moves.** A move starts when at least 12 cells of 8 pt change after 0.6 s of rest. Cells that keep changing on their own (the live waveform and the edge it grows into, a running timer) are busy: they can't start a move and aren't scored, and neither are the status bar and the last column, where a scroll indicator fades a second after any scroll. The bursts are matched to the script in order by where they change the screen, so launch, Control Center and stray bursts are skipped.
 
 **Onset.** Each move is aligned at the start of its main motion: the rise from 10% to 30% of the move's change, extended back to zero. A tap highlight stays under 10%, so it can't shift the alignment, and the line falls between frames. The frame before a move is static, so its timestamp is ignored. With the refresh grid, this took the same-build noise on a row expand from 25% to 1.3%.
 
@@ -91,16 +97,19 @@ Noise for these three moves is about 0.9%. The 15 agent calls cost $0.06 in all;
 
 Three more rounds from there with four agents, Haiku and Sonnet taking turns, kept nothing: both Sonnet agents proposed `.spring(duration: 0.42, bounce: 0.17)` (2.66%, then 3.02%), inside the acceptance margin, and Haiku pushed bounce too high (6–8%). For scale, a fresh take of the exact hidden spring scores 2.08% against the target, and the loop's `.spring(duration: 0.40, bounce: 0.17)` scores 2.81% and 4.19% in two takes (the second has one late-capture move). The loop got into the noise around the true value; telling 0.40 s from 0.42 s needs more takes per candidate.
 
-## What the device recordings need
+## Against Apple's footage
 
-Apple's and retake's lists will show different titles and dates. Geometry is built not to care (it follows where content moves, not what it is) and the error blurs text toward bars, but neither has met real Apple footage yet: the first device pair will show how much of the error is content, and the `--events` listing will show whether every move is found. What the recordings need:
+The first device reference is a screen recording of Voice Memos on iOS 27 (iPhone 16 Pro Max, 60 fps). It has 11 of the 20 moves; the rest (expand from a closed list, collapse, Select, folders) never happen in it, and its only resume is a layered one.
+
+Two instances of the same move in Apple's own footage set the floor: 2 switch 1.2%, 4c menu closes 3.0%, 4b menu opens 13%, 5 record 12%, 8a record again 20%, 8b stop 18%, 6 swipe up 49% (finger-driven). A retake move inside those numbers is as close as Apple is to itself.
+
+Before the error can compare motion, the frames have to match at rest: the same rows (the fixture) and the same layout. Comparing still frames element by element (box per glyph run, in points) found the row, player, card and full-sheet differences fixed alongside this.
+
+What the device recordings need:
 
 - iPhone 16 Pro Max, portrait, light mode, Do Not Disturb on, the same text size in both apps.
-- At least 1.5 s of stillness between moves (the segmenter needs 0.6 s; the tail of a spring needs the rest), and nothing else on screen moving.
+- At least 1.5 s of stillness between moves, and nothing else on screen moving.
 - Quick, clean taps. The onset is the first visible reaction, and a long press shows a highlight first.
-- The same starting state: at least two recordings at the top of the list, nothing expanded, the same list position.
-- The swipe up (move 6) is driven by the finger, so only the part after release compares; swipe the same way in both.
-- Two takes of each app if there's time: that measures the device noise floor per move, the way the table above does for the simulator.
-- `reference/device/` is gitignored: the recordings show real titles and dates, and the repo is public.
-
-Check the segmentation first with `parity/score reference/device/apple.mov --events`; every move should map to a burst.
+- The swipe up (move 6) is driven by the finger, so only the part after release compares.
+- Two instances of each move if there's time: they measure the device noise floor per move.
+- `reference/device/` is gitignored: the recordings and fixtures show real titles and dates, and the repo is public.

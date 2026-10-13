@@ -56,8 +56,9 @@ def git(*args: str, cwd: Path = REPO) -> str:
     return subprocess.run(["git", *args], cwd=cwd, check=True, capture_output=True, text=True).stdout.strip()
 
 
-def record(tree: Path, out: Path, slot: str) -> bool:
-    done = subprocess.run([str(ROOT / "record"), str(tree), str(out), slot], capture_output=True, text=True)
+def record(tree: Path, out: Path, slot: str, fixture: Path) -> bool:
+    done = subprocess.run([str(ROOT / "record"), str(tree), str(out), slot, *([str(fixture)] if fixture.exists() else [])],
+                          capture_output=True, text=True)
     (out.with_suffix(".log")).write_text(done.stdout + done.stderr)
     return done.returncode == 0 and out.exists()
 
@@ -174,7 +175,7 @@ def main(argv: list[str] | None = None):
     def recorded(tree: Path, out: Path) -> bool:
         slot = slots.get()
         try:
-            return record(tree, out, slot)
+            return record(tree, out, slot, Path(args.target).with_suffix(".fixture.json"))
         finally:
             slots.put(slot)
 

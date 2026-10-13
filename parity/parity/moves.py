@@ -25,10 +25,19 @@ class Event:
     busy: np.ndarray
 
 
+def ignored(shape: tuple[int, int]) -> np.ndarray:
+    """Cells neither app draws a move in: the status bar, and the last column, where a scroll indicator
+    fades in and out a second after any scroll."""
+    mask = np.zeros(shape, bool)
+    mask[:STATUS_BAR] = True
+    mask[:, -1] = True
+    return mask
+
+
 def changes(f: Features) -> np.ndarray:
     moved = np.zeros(f.thumbs.shape, bool)
     moved[1:] = np.abs(np.diff(f.thumbs, axis=0)) > CHANGE
-    moved[:, :STATUS_BAR] = False
+    moved[:, ignored(f.thumbs.shape[1:])] = False
     return moved
 
 
@@ -59,7 +68,8 @@ def events(f: Features) -> list[Event]:
     for onset, end in zip(onsets, ends):
         until = np.searchsorted(f.times, f.times[onset] + FOOTPRINT, side="right")
         later = binary_dilation(since(end - 0.15, 0.5) >= BUSY_CHANGES, np.ones((5, 5), bool))
-        found.append(Event(int(onset), moved[onset:until].any(axis=0) & ~steady[onset], steady[onset] | later))
+        found.append(Event(int(onset), moved[onset:until].any(axis=0) & ~steady[onset],
+                           steady[onset] | later | ignored(moved.shape[1:])))
     return found
 
 

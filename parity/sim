@@ -20,6 +20,10 @@ if [ "${2:-}" = build ]; then
   fi
 fi
 
+if [ -f parity/fixture.json ]; then
+  export TEST_RUNNER_DEMO_FIXTURE=$(cat parity/fixture.json)
+fi
+
 rm -f "$out"
 xcrun simctl io "$id" recordVideo --codec h264 --force "$out" >/dev/null 2>&1 &
 recorder=$!

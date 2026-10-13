@@ -7,7 +7,7 @@ import numpy as np
 
 from .features import load
 from .moves import events, script
-from .pair import Pair, score, scripted
+from .pair import TEMPLATE, Pair, picks, score, scripted
 from .render import strips
 
 
@@ -40,10 +40,12 @@ def curves(pair: Pair) -> dict:
 
 def table(pair: Pair) -> str:
     lines = [f"{'move':>4}  {'error':>7}  {'geometry':>8}  {'half (ref/cand)':>16}  {'settle (ref/cand)':>18}  name"]
+    chosen = picks(pair.ref.path)
     for move in pair.moves:
         r = move.result
         if not r:
-            lines.append(f"{move.step['id']:>4}  {'--':>7}  {'':>8}  {'':>16}  {'':>18}  {move.step['name']} (not found)")
+            missing = "not in reference" if chosen is not None and move.step["id"] not in chosen else "not found"
+            lines.append(f"{move.step['id']:>4}  {'--':>7}  {'':>8}  {'':>16}  {'':>18}  {move.step['name']} ({missing})")
             continue
         half = "/".join("--" if h is None else f"{h * 1000:.0f}" for h in r.timing["half"])
         settle = "/".join(f"{s * 1000:.0f}" for s in r.timing["settle"])
@@ -64,6 +66,18 @@ def bursts(path: str) -> str:
     return "\n".join(lines + ([f"  not found: {', '.join(missing)}"] if missing else []))
 
 
+def template(path: str) -> str:
+    """Rewrites script.npz from a clean take of the script: its picks if it has them, else the current template."""
+    f = load(path)
+    picked = list(zip(script(), scripted(f)))
+    missing = [step["id"] for step, e in picked if not e]
+    if missing:
+        raise SystemExit(f"{path}: no burst for {', '.join(missing)}")
+    np.savez_compressed(TEMPLATE, footprints=np.array([e.footprint for _, (e, _) in picked]))
+    return "\n".join(f"  {step['id']:>4} at {f.times[e.onset]:6.2f} s  {e.footprint.sum():5d} cells  {step['name']}"
+                     for step, (e, _) in picked)
+
+
 def main(argv: list[str] | None = None):
     parser = argparse.ArgumentParser(prog="parity", description="Scores how closely one recording of the parity "
                                      "script moves like another.")
@@ -73,7 +87,12 @@ def main(argv: list[str] | None = None):
     parser.add_argument("--moves", help="comma-separated move ids to score, e.g. 1,2,4a")
     parser.add_argument("--json", action="store_true", help="print the summary as JSON instead of a table")
     parser.add_argument("--events", action="store_true", help="list the bursts found in each recording and the move each became")
+    parser.add_argument("--template", action="store_true", help="rewrite script.npz from this clean take of the script "
+                        "(name its moves in <take>.moves.json when the script changed)")
     args = parser.parse_args(argv)
+    if args.template:
+        print(template(args.reference))
+        return
     if args.events or not args.candidate:
         print("\n\n".join(bursts(path) for path in (args.reference, args.candidate) if path))
         return
