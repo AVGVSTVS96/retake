@@ -10,7 +10,7 @@ enum Format {
     }
 
     static func remaining(_ seconds: TimeInterval) -> String {
-        "-" + duration(seconds)
+        "\u{2212}" + duration(seconds)
     }
 
     static func timer(_ seconds: TimeInterval) -> String {

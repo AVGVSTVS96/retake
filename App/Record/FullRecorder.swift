@@ -16,6 +16,7 @@ struct FullRecorder: View {
 
     private var isReplacing: Bool { recorder.phase != .idle && recorder.replacing != nil && recorder.replacing?.id == recording?.id }
     private var isRecording: Bool { (mode == .recorder && recorder.phase != .idle) || isReplacing }
+    private var showsTake: Bool { mode == .recorder || isReplacing }
 
     private func capture(at time: TimeInterval) -> (peaks: [Float], duration: TimeInterval, time: TimeInterval) {
         guard let replacing = recorder.replacing, let recording else {
@@ -58,20 +59,20 @@ struct FullRecorder: View {
             header
             TimelineView(.animation(paused: !(recorder.phase == .recording || player.isPlaying))) { _ in
                 let live = capture(at: recorder.displaySeconds())
-                let time = isRecording ? live.time : player.time()
+                let time = showsTake ? live.time : player.time()
                 VStack(spacing: 0) {
                     ZStack {
                         if showsTranscript {
                             TranscriptView(
-                                transcript: isRecording ? recorder.live?.transcript : recording?.transcript,
+                                transcript: showsTake ? recorder.live?.transcript : recording?.transcript,
                                 time: time,
                                 isPending: recording.map { library.transcribing.contains($0.id) } ?? (recorder.live?.isAvailable ?? false)
                             )
                                 .transition(.opacity)
                         } else {
                             WaveformPanel(
-                                peaks: isRecording ? live.peaks : library.peaks[recording?.id ?? UUID()] ?? [],
-                                duration: isRecording ? live.duration : (recording?.duration ?? 0),
+                                peaks: showsTake ? live.peaks : library.peaks[recording?.id ?? UUID()] ?? [],
+                                duration: showsTake ? live.duration : (recording?.duration ?? 0),
                                 time: time,
                                 style: recorder.phase == .recording && isRecording ? .recording : .playback,
                                 replaced: isReplacing ? recorder.replacing.map { $0.at..<live.time } : nil,
@@ -80,47 +81,49 @@ struct FullRecorder: View {
                             .transition(.opacity)
                         }
                     }
-                    .frame(minHeight: 180, idealHeight: 372, maxHeight: 372)
+                    .frame(minHeight: 180, idealHeight: 445, maxHeight: 445)
                     .animation(.smooth(duration: 0.25), value: showsTranscript)
-                    .padding(.top, 22)
+                    .padding(.top, 47)
                     Text(Format.timer(time))
                         .font(.system(size: 34, weight: .semibold))
                         .monospacedDigit()
                         .contentTransition(.numericText())
-                        .padding(.top, 28)
+                        .padding(.top, 38)
                 }
             }
             Transport(size: .sheet, isEnabled: !isRecording)
-                .padding(.top, 22)
+                .padding(.top, 34)
             Spacer(minLength: 16)
             bottomBar
         }
+        .ignoresSafeArea(edges: .bottom)
     }
 
     private var header: some View {
-        VStack(spacing: 2) {
+        VStack(spacing: 0) {
             HStack {
                 if let recording {
                     RecordingMenu(recording: recording, style: .sheet)
                         .glassEffect(.regular.interactive(), in: .circle)
                 } else {
                     Image(systemName: "ellipsis")
+                        .font(.title2)
                         .frame(width: 44, height: 44)
                         .glassEffect(.regular, in: .circle)
-                        .foregroundStyle(.secondary)
                 }
                 Spacer()
                 Button(action: done) {
                     Image(systemName: "checkmark")
-                        .font(.body.weight(.semibold))
+                        .font(.title3.weight(.semibold))
+                        .foregroundStyle(.white)
                         .frame(width: 44, height: 44)
+                        .glassEffect(.regular.tint(.accentColor).interactive(), in: .circle)
                 }
-                .buttonStyle(.glassProminent)
-                .buttonBorderShape(.circle)
+                .buttonStyle(.plain)
                 .accessibilityLabel("Done")
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 14)
+            .padding(.horizontal, 20)
+            .padding(.top, 19.5)
             Group {
                 if let recording {
                     TitleField(recording: recording)
@@ -128,16 +131,16 @@ struct FullRecorder: View {
                     Text(recorder.take?.title ?? "").lineLimit(1)
                 }
             }
-            .font(.headline)
+            .font(.subheadline.weight(.semibold))
             .padding(.horizontal, 60)
-            .padding(.top, 4)
+            .padding(.top, 28.5)
             HStack(spacing: 6) {
                 Text(Format.headerDate(recording?.created ?? recorder.take?.created ?? .now))
                 Text(Format.duration(recording?.duration ?? recorder.seconds))
                     .monospacedDigit()
             }
-            .font(.subheadline.weight(.medium))
-            .foregroundStyle(.secondary)
+            .font(.footnote)
+            .foregroundStyle(Color.rowDetail)
         }
     }
 
@@ -147,8 +150,9 @@ struct FullRecorder: View {
                 session.transcript = showsTranscript ? nil : (recording?.id ?? recorder.take?.id)
             } label: {
                 Image(systemName: showsTranscript ? "quote.bubble.fill" : "quote.bubble")
+                    .font(.title2)
                     .foregroundStyle(showsTranscript ? Color.white : Color.primary)
-                    .frame(width: 44, height: 44)
+                    .frame(width: 49, height: 49)
                     .background(showsTranscript ? Color.accentColor : .clear, in: .circle)
             }
             .glassEffect(.regular.interactive(), in: .circle)
@@ -160,7 +164,8 @@ struct FullRecorder: View {
                 session.options = recording?.id
             } label: {
                 Image(systemName: "slider.horizontal.3")
-                    .frame(width: 44, height: 44)
+                    .font(.title2)
+                    .frame(width: 49, height: 49)
             }
             .glassEffect(.regular.interactive(), in: .circle)
             .disabled(recording == nil)
@@ -168,8 +173,8 @@ struct FullRecorder: View {
         }
         .buttonStyle(.plain)
         .tint(.primary)
-        .padding(.horizontal, 24)
-        .padding(.bottom, 18)
+        .padding(.horizontal, 27.5)
+        .padding(.bottom, 21)
     }
 
     @ViewBuilder
@@ -190,9 +195,9 @@ struct FullRecorder: View {
                     }
                 }
                 .contentTransition(.opacity)
-                .frame(width: 140, height: 56)
+                .frame(width: 156, height: 60)
             }
-            .glassEffect(.regular.interactive(), in: .capsule)
+            .glassEffect(recorder.phase == .paused ? .regular.tint(.record.opacity(0.35)).interactive() : .regular.interactive(), in: .capsule)
             .accessibilityLabel(recorder.phase == .paused ? "Resume" : "Pause")
         } else {
             Button {
@@ -226,13 +231,12 @@ struct WaveformPanel: View {
     var replaced: Range<TimeInterval>?
     var onSeek: ((TimeInterval) -> Void)?
     @State private var scrub: (start: TimeInterval, time: TimeInterval)?
-    static let pointsPerSecond: CGFloat = 92
+    static let window: TimeInterval = 4.4
 
     var body: some View {
         GeometryReader { proxy in
             let shown = scrub?.time ?? time
-            let half = Double(proxy.size.width / 2 / Self.pointsPerSecond)
-            let visible = (shown - half)...(shown + half)
+            let visible = (shown - Self.window / 2)...(shown + Self.window / 2)
             let tint = switch style {
             case .recording: Color.record
             case .playback: Color.accentColor
@@ -264,8 +268,8 @@ struct WaveformPanel: View {
                         playhead: shown,
                         played: style == .recording ? .record : Color(.tertiaryLabel),
                         unplayed: Color(.label),
-                        barWidth: 2,
-                        spacing: 2,
+                        barWidth: 1,
+                        spacing: 3,
                         hidesFuture: style == .recording && replaced == nil,
                         highlight: replaced.map { ($0, Color.record) }
                     )
@@ -276,22 +280,21 @@ struct WaveformPanel: View {
                     .frame(height: 28)
             }
             .contentShape(.rect)
-            .gesture(drag, isEnabled: onSeek != nil)
+            .gesture(drag(perSecond: proxy.size.width / Self.window), isEnabled: onSeek != nil)
         }
-        .frame(minHeight: 180, idealHeight: 372, maxHeight: 372)
         .accessibilityLabel("Waveform")
     }
 
-    private var drag: some Gesture {
+    private func drag(perSecond: CGFloat) -> some Gesture {
         DragGesture(minimumDistance: 4)
             .onChanged { value in
                 let start = scrub?.start ?? time
-                let target = start - Double(value.translation.width / Self.pointsPerSecond)
+                let target = start - Double(value.translation.width / perSecond)
                 scrub = (start, min(duration, max(0, target)))
             }
             .onEnded { value in
                 let start = scrub?.start ?? time
-                let target = min(duration, max(0, start - Double(value.predictedEndTranslation.width / Self.pointsPerSecond)))
+                let target = min(duration, max(0, start - Double(value.predictedEndTranslation.width / perSecond)))
                 onSeek?(target)
                 scrub = nil
             }
@@ -345,20 +348,29 @@ struct Ruler: View {
 
 struct TitleField: View {
     let recording: Recording
+    var alignment = TextAlignment.center
     @Environment(Library.self) private var library
+    @Environment(Session.self) private var session
     @State private var title = ""
     @FocusState private var isFocused: Bool
 
     var body: some View {
         TextField("Name", text: $title)
-            .multilineTextAlignment(.center)
+            .multilineTextAlignment(alignment)
+            .tint(.primary)
             .submitLabel(.done)
             .focused($isFocused)
             .onAppear { title = recording.title }
+            .onChange(of: session.renaming == recording.id, initial: true) { _, requested in
+                if requested { isFocused = true }
+            }
             .onChange(of: isFocused) { _, focused in
-                if !focused { commit() }
+                guard !focused else { return }
+                commit()
+                if session.renaming == recording.id { session.renaming = nil }
             }
             .onSubmit(commit)
+            .onDisappear(perform: commit)
             .accessibilityLabel("Edit Title")
     }
 
@@ -368,6 +380,6 @@ struct TitleField: View {
             title = recording.title
             return
         }
-        library.update(recording.id) { $0.title = trimmed }
+        if trimmed != recording.title { library.update(recording.id) { $0.title = trimmed } }
     }
 }

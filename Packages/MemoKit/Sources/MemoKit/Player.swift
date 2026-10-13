@@ -19,6 +19,7 @@ public final class Player {
         componentFlags: 0,
         componentFlagsMask: 0
     ))
+    @ObservationIgnored private var source: URL?
     @ObservationIgnored private var file: AVAudioFile?
     @ObservationIgnored private var peaks: [Float] = []
     @ObservationIgnored private var schedule = Schedule(segments: [])
@@ -33,25 +34,27 @@ public final class Player {
         configureEnhance()
     }
 
+    /// Opening the file and wiring the graph wait for the first play: doing them as a row opens stalled its animation.
     public func load(_ recording: Recording, url: URL, peaks: [Float]) {
-        guard current != recording.id || file?.url != url else {
+        guard current != recording.id || source != url else {
             setOptions(recording.playback)
             return
         }
         stopNode()
-        file = try? AVAudioFile(forReading: url)
+        source = url
+        file = nil
         current = recording.id
         self.peaks = peaks
-        duration = file.map { Double($0.length) / $0.fileFormat.sampleRate } ?? recording.duration
+        duration = recording.duration
         restingTime = 0
         options = recording.playback
-        connect()
         applyOptions()
     }
 
     public func unload() {
         stopNode()
         engine.stop()
+        source = nil
         file = nil
         current = nil
         restingTime = 0
@@ -70,7 +73,7 @@ public final class Player {
     }
 
     public func play() {
-        guard file != nil, !isPlaying else { return }
+        guard !isPlaying, open() else { return }
         if restingTime >= duration - 0.01 { restingTime = 0 }
         activateSession()
         do {
@@ -116,6 +119,15 @@ public final class Player {
         generation += 1
         node.stop()
         isPlaying = false
+    }
+
+    private func open() -> Bool {
+        if file == nil, let source, let opened = try? AVAudioFile(forReading: source) {
+            file = opened
+            duration = Double(opened.length) / opened.fileFormat.sampleRate
+            connect()
+        }
+        return file != nil
     }
 
     private func connect() {

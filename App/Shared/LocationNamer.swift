@@ -4,7 +4,7 @@ import Observation
 
 @MainActor @Observable
 final class LocationNamer {
-    private(set) var place: String?
+    private(set) var place = Demo.fixture?.place
     @ObservationIgnored private var updates: Task<Void, Never>?
     @ObservationIgnored private var geocoded: CLLocation?
 

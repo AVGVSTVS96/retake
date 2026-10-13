@@ -14,14 +14,20 @@ struct RecordingRow: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
                 VStack(alignment: .leading, spacing: 0) {
-                    Text(recording.title)
-                        .font(.headline)
-                        .lineLimit(1)
-                    HStack(spacing: 6) {
+                    Group {
+                        if isExpanded, session.sheet == nil {
+                            TitleField(recording: recording, alignment: .leading)
+                        } else {
+                            Text(recording.title)
+                        }
+                    }
+                    .font(.headline)
+                    .lineLimit(1)
+                    HStack(spacing: 8) {
                         Text(Format.listDate(recording.created))
                         if recording.transcript != nil {
                             Image(systemName: "quote.bubble")
-                                .imageScale(.small)
+                                .font(.body)
                                 .accessibilityLabel("Transcription available")
                         }
                         Spacer()
@@ -32,9 +38,9 @@ struct RecordingRow: View {
                         }
                     }
                     .font(.subheadline)
-                    .foregroundStyle(isSelected ? AnyShapeStyle(.white.opacity(0.85)) : AnyShapeStyle(.secondary))
-                    .padding(.top, 2)
+                    .foregroundStyle(isSelected ? AnyShapeStyle(.white.opacity(0.85)) : AnyShapeStyle(Color.rowDetail))
                 }
+                .foregroundStyle(isSelected ? .white : .primary)
                 if isExpanded {
                     RecordingMenu(recording: recording)
                         .transition(.asymmetric(insertion: .opacity.animation(.easeOut(duration: 0.2)), removal: .identity))
@@ -48,7 +54,6 @@ struct RecordingRow: View {
             }
         }
         .padding(.vertical, 11)
-        .foregroundStyle(isSelected ? .white : .primary)
         .clipped()
         .animation(.smooth(duration: 0.3), value: isExpanded)
     }
@@ -98,23 +103,24 @@ struct InlinePlayer: View {
                 let time = player.current == recording.id ? player.time() : 0
                 VStack(spacing: 9) {
                     Scrubber(value: time, total: recording.duration) { player.seek(to: $0) }
+                        .padding(.horizontal, 1)
                     HStack {
                         Text(Format.duration(time))
                         Spacer()
                         Text(Format.remaining(recording.duration - time))
                     }
-                    .font(.caption2)
+                    .font(.caption)
                     .monospacedDigit()
                     .foregroundStyle(.secondary)
                 }
             }
-            .padding(.top, 14)
+            .padding(.top, 18)
             HStack {
                 Button {
                     session.sheet = .recording(recording.id)
                 } label: {
                     Image(systemName: "waveform")
-                        .font(.title3)
+                        .font(.title2)
                 }
                 .tint(.accentColor)
                 .accessibilityLabel("Edit Recording")
@@ -127,13 +133,13 @@ struct InlinePlayer: View {
                     library.trash([recording.id])
                 } label: {
                     Image(systemName: "trash")
-                        .font(.title3)
+                        .font(.title2)
                 }
                 .tint(.accentColor)
                 .accessibilityLabel("Delete")
             }
             .buttonStyle(.borderless)
-            .padding(.top, 14)
+            .padding(.top, 18)
         }
     }
 }
@@ -152,7 +158,7 @@ struct Scrubber: View {
                 Capsule().fill(Color(.systemFill))
                 Capsule().fill(Color.primary).frame(width: proxy.size.width * fraction)
             }
-            .frame(height: dragging == nil ? 4 : 6)
+            .frame(height: dragging == nil ? 6.7 : 9)
             .frame(maxHeight: .infinity)
             .contentShape(.rect)
             .gesture(
@@ -177,24 +183,21 @@ struct Transport: View {
         case row, sheet, bar
 
         var skip: Font {
-            switch self {
-            case .row: .title3
-            case .sheet, .bar: .title2
-            }
+            self == .sheet ? .system(size: 30) : .title2
         }
 
         var play: CGFloat {
             switch self {
-            case .row: 28
-            case .sheet: 34
+            case .row: 33
+            case .sheet: 39
             case .bar: 28
             }
         }
 
         var spacing: CGFloat {
             switch self {
-            case .row: 28
-            case .sheet: 44
+            case .row: 29
+            case .sheet: 23
             case .bar: 32
             }
         }

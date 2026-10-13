@@ -30,6 +30,17 @@ final class Session {
     var isSelecting = false
 }
 
+extension Session {
+    /// Opens a row and loads its recording in the same update: loading it in a later pass of that frame made
+    /// List snap the row instead of animating it.
+    func expand(_ recording: Recording?, player: Player, library: Library) {
+        if let recording {
+            player.load(recording, url: library.url(for: recording), peaks: library.peaks[recording.id] ?? [])
+        }
+        expanded = recording?.id
+    }
+}
+
 extension Library {
     func recordings(in scope: Scope) -> [Recording] {
         switch scope {

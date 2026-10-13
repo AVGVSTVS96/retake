@@ -4,9 +4,6 @@ import SwiftUI
 struct RecordingMenu: View {
     let recording: Recording
     var style = Style.row
-    @Environment(Library.self) private var library
-    @Environment(Session.self) private var session
-    @Environment(Player.self) private var player
 
     enum Style {
         case row, sheet
@@ -14,11 +11,11 @@ struct RecordingMenu: View {
 
     var body: some View {
         Menu {
-            RecordingActions(recording: recording)
+            RecordingActions(recording: recording, style: style)
         } label: {
             Image(systemName: "ellipsis")
-                .font(style == .row ? .body.weight(.semibold) : .body.weight(.medium))
-                .frame(width: style == .row ? 28 : 44, height: style == .row ? 28 : 44)
+                .font(.title2)
+                .frame(width: style == .row ? 28 : 44, height: style == .row ? 40 : 44, alignment: style == .row ? .trailing : .center)
                 .contentShape(.rect)
         }
         .tint(style == .row ? .accentColor : .primary)
@@ -28,42 +25,59 @@ struct RecordingMenu: View {
 
 struct RecordingActions: View {
     let recording: Recording
+    var style = RecordingMenu.Style.row
     @Environment(Library.self) private var library
     @Environment(Session.self) private var session
     @Environment(Player.self) private var player
 
+    private var studioVoice: Binding<Bool> {
+        Binding {
+            recording.playback.enhance
+        } set: { on in
+            library.update(recording.id) { $0.playback.enhance = on }
+            if player.current == recording.id, let updated = library.recording(recording.id) { player.setOptions(updated.playback) }
+        }
+    }
+
     var body: some View {
         Section {
-            Button("Edit Recording", systemImage: "waveform") { session.sheet = .recording(recording.id) }
-            Button("Trim", systemImage: "timeline.selection") {
-                session.sheet = .recording(recording.id)
-                session.editing = recording.id
-            }
-            Button("Rename", systemImage: "pencil") { session.renaming = recording.id }
-            Button("Duplicate", systemImage: "plus.square.on.square") { try? library.duplicate(recording.id) }
             ShareLink(item: library.url(for: recording), preview: SharePreview(recording.title)) {
                 Label("Share", systemImage: "square.and.arrow.up")
             }
         }
         Section {
-            if let transcript = recording.transcript {
-                Button("Copy Transcript", systemImage: "doc.on.doc") { UIPasteboard.general.string = transcript.text }
+            Button("Rename", systemImage: "pencil") { session.renaming = recording.id }
+            if style == .row {
+                Button("Edit Recording", systemImage: "waveform") { open() }
+            } else {
+                Button("Trim", systemImage: "timeline.selection") { session.editing = recording.id }
             }
+            if let transcript = recording.transcript {
+                Button("View Transcript", systemImage: "quote.bubble") { open { session.transcript = recording.id } }
+                Button("Copy Transcript", systemImage: "text.quote") { UIPasteboard.general.string = transcript.text }
+            }
+        }
+        Section {
+            Button("Options", systemImage: "slider.horizontal.3") { open { session.options = recording.id } }
+            Toggle("Studio Voice", systemImage: "waveform.and.person.filled", isOn: studioVoice)
+        }
+        Section {
             Button(recording.isFavorite ? "Unfavorite" : "Favorite", systemImage: recording.isFavorite ? "heart.slash" : "heart") {
                 library.update(recording.id) { $0.isFavorite.toggle() }
             }
-            Menu("Move to Folder", systemImage: "folder") {
+            Button("Duplicate", systemImage: "plus.square.on.square") { try? library.duplicate(recording.id) }
+            Menu("Move", systemImage: "folder") {
                 Button("All Recordings") { library.move([recording.id], to: nil) }
                 ForEach(library.folders) { folder in
                     Button(folder.name) { library.move([recording.id], to: folder.id) }
                 }
             }
         }
-        Button("Delete", systemImage: "trash", role: .destructive) {
-            if player.current == recording.id { player.unload() }
-            if session.expanded == recording.id { session.expanded = nil }
-            library.trash([recording.id])
-        }
+    }
+
+    private func open(then show: () -> Void = {}) {
+        session.sheet = .recording(recording.id)
+        show()
     }
 }
 

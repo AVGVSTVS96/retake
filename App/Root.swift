@@ -19,6 +19,7 @@ struct PhoneRoot: View {
     @Environment(Session.self) private var session
     @Environment(Recorder.self) private var recorder
     @Environment(Library.self) private var library
+    @Environment(Player.self) private var player
     @State private var path: [Scope] = [.all]
     @Namespace private var transition
 
@@ -33,7 +34,8 @@ struct PhoneRoot: View {
             if let scope = path.last, scope != .deleted, !session.isSelecting {
                 RecordButton()
                     .matchedTransitionSource(id: TransitionID.record, in: transition)
-                    .padding(.bottom, 6)
+                    .padding(.bottom, 1)
+                    .ignoresSafeArea(.keyboard)
                     .transition(.opacity)
             }
         }
@@ -46,7 +48,7 @@ struct PhoneRoot: View {
                 session.sheet = nil
             }
         }
-        .task { await Demo.stage(session: session, recorder: recorder, library: library, path: $path) }
+        .task { await Demo.stage(session: session, recorder: recorder, player: player, library: library, path: $path) }
         .sheet(item: $session.sheet) { mode in
             RecordSheet(mode: mode)
                 .navigationTransition(.zoom(sourceID: TransitionID.record, in: transition))

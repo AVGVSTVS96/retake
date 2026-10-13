@@ -19,6 +19,7 @@ struct EditView: View {
                     let time = player.time()
                     VStack(spacing: 0) {
                         WaveformPanel(peaks: draft.peaks, duration: draft.duration, time: time, style: .editing, selection: selection) { player.seek(to: $0) }
+                            .frame(minHeight: 180, idealHeight: 372, maxHeight: 372)
                             .padding(.top, 22)
                         TrimStrip(peaks: draft.peaks, duration: draft.duration, time: time, selection: $selection)
                             .padding(.horizontal, 40)
@@ -134,7 +135,7 @@ struct EditView: View {
         do {
             if asNew {
                 let copy = try library.saveAsNew(draft, from: recording.id)
-                session.expanded = copy?.id
+                session.expand(copy, player: player, library: library)
                 session.selected = copy?.id ?? session.selected
             } else {
                 try library.save(draft, over: recording.id)

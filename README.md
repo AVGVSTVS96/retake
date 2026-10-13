@@ -34,7 +34,7 @@ Built against Apple's iOS 27 screenshots, the English strings from the iOS 27 si
 
 \* From iOS 26's screen recording. The iOS 27 footage doesn't film stop from the card; its Done collapse is the same ~215 ms.
 
-What's in: the recordings list with inline player, the record card and full sheet, pause and resume, Replace from the playhead, trim and delete with Save or Save as New, playback speed, Skip Silence, Enhance Recording, on-device transcripts (live while recording, word by word while playing), folders, Favorites, Recently Deleted, search across titles and transcripts, rename, duplicate, share, the iPad split view, Live Activity and Dynamic Island, a Control Center button, and Settings (Clear Deleted, Audio Quality, Location-based Naming).
+What's in: the recordings list with inline player, the record card and full sheet, pause and resume, Replace from the playhead, trim and delete with Save or Save as New, playback speed, Skip Silence, Studio Voice, on-device transcripts (live while recording, word by word while playing), folders, Favorites, Recently Deleted, search across titles and transcripts, rename, duplicate, share, the iPad split view, Live Activity and Dynamic Island, a Control Center button, and Settings (Clear Deleted, Audio Quality, Location-based Naming).
 
 Not yet: layered recordings, Spatial Audio capture and Studio Sound (they need iPhone 16 Pro and 18 Pro mics), iCloud sync, Apple Watch.
 

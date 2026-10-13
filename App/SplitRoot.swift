@@ -5,6 +5,7 @@ struct SplitRoot: View {
     @Environment(Session.self) private var session
     @Environment(Recorder.self) private var recorder
     @Environment(Library.self) private var library
+    @Environment(Player.self) private var player
     @State private var scope: Scope? = .all
     @State private var columns = NavigationSplitViewVisibility.doubleColumn
 
@@ -27,7 +28,7 @@ struct SplitRoot: View {
         }
         .task {
             if session.selected == nil { session.selected = library.recordings(in: .all).first?.id }
-            await Demo.stage(session: session, recorder: recorder, library: library)
+            await Demo.stage(session: session, recorder: recorder, player: player, library: library)
         }
     }
 }
@@ -86,6 +87,7 @@ struct PlayerDetail: View {
                                 .frame(minHeight: 180, idealHeight: 372, maxHeight: 372)
                         } else {
                             WaveformPanel(peaks: library.peaks[recording.id] ?? [], duration: recording.duration, time: time, style: .playback) { player.seek(to: $0) }
+                                .frame(minHeight: 180, idealHeight: 372, maxHeight: 372)
                         }
                     }
                     .padding(.top, 28)

@@ -18,8 +18,8 @@ final class Model {
             player.pause()
             await recorder.record(title: places.place)
         }
-        RecordingIntentHandler.stop = { [recorder, session] in
-            session.expanded = recorder.stop()?.id ?? session.expanded
+        RecordingIntentHandler.stop = { [recorder, session, player, library] in
+            if let recording = recorder.stop() { session.expand(recording, player: player, library: library) }
         }
     }
 }

@@ -54,7 +54,7 @@ struct OptionsPanel: View {
                 Toggle("Skip Silence", isOn: options.skipSilence)
                     .padding(.vertical, 14)
                 Divider()
-                Toggle("Enhance Recording", isOn: options.enhance)
+                Toggle("Studio Voice", isOn: options.enhance)
                     .padding(.vertical, 14)
             }
             .padding(.horizontal, 16)

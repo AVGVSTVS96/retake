@@ -11,7 +11,6 @@ struct RecordingsList: View {
     @State private var isSearching = false
     @State private var selection = Set<Recording.ID>()
     @State private var editMode = EditMode.inactive
-    @State private var newTitle = ""
 
     private var recordings: [Recording] {
         let all = library.recordings(in: scope)
@@ -22,9 +21,12 @@ struct RecordingsList: View {
 
     var body: some View {
         @Bindable var session = session
+        // Read in the body, not the row builder: List animates row heights only for changes that reach it through
+        // its own update, and snaps a row that sees the change alone.
+        let expanded = isSplit || editMode.isEditing ? nil : session.expanded
         List(selection: editMode.isEditing ? $selection : nil) {
             ForEach(recordings) { recording in
-                RecordingRow(recording: recording, scope: scope, isExpanded: !isSplit && session.expanded == recording.id && !editMode.isEditing)
+                RecordingRow(recording: recording, scope: scope, isExpanded: expanded == recording.id)
                     .contentShape(.rect)
                     .onTapGesture { toggle(recording) }
                     .listRowBackground(isSplit && session.selected == recording.id && !editMode.isEditing ? selectionBackground : nil)
@@ -79,27 +81,10 @@ struct RecordingsList: View {
             }
         }
         .toolbar(editMode.isEditing ? .visible : .hidden, for: .bottomBar)
-        .alert("Rename", isPresented: Binding(get: { session.renaming != nil }, set: { if !$0 { session.renaming = nil } })) {
-            TextField("Name", text: $newTitle)
-            Button("Cancel", role: .cancel) {}
-            Button("Save") {
-                let trimmed = newTitle.trimmingCharacters(in: .whitespacesAndNewlines)
-                if let id = session.renaming, !trimmed.isEmpty { library.update(id) { $0.title = trimmed } }
-            }
-        } message: {
-            Text("Enter a name for this voice memo.")
-        }
-        .onChange(of: session.renaming) { _, id in
-            newTitle = id.flatMap { library.recording($0)?.title } ?? ""
-        }
         .onChange(of: editMode.isEditing, initial: true) { _, editing in
             session.isSelecting = editing
         }
         .onDisappear { session.isSelecting = false }
-        .onChange(of: session.expanded) { _, id in
-            guard let id, let recording = library.recording(id) else { return }
-            player.load(recording, url: library.url(for: recording), peaks: library.peaks[id] ?? [])
-        }
     }
 
     private var searchPrompt: String {
@@ -126,7 +111,7 @@ struct RecordingsList: View {
             player.pause()
         } else {
             player.pause()
-            session.expanded = recording.id
+            session.expand(recording, player: player, library: library)
         }
     }
 

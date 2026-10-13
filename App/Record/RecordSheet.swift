@@ -5,6 +5,8 @@ struct RecordSheet: View {
     let mode: SheetMode
     @Environment(Recorder.self) private var recorder
     @Environment(Session.self) private var session
+    @Environment(Player.self) private var player
+    @Environment(Library.self) private var library
     @State private var detent: PresentationDetent
 
     init(mode: SheetMode) {
@@ -29,7 +31,9 @@ struct RecordSheet: View {
                         .opacity(min(1, max(0, expansion * 1.6 - 0.4)))
                 }
             }
+            .background(Color(.secondarySystemBackground).opacity(1 - expansion).ignoresSafeArea())
         }
+        .presentationBackground(Color(.systemBackground))
         .presentationDetents(detents, selection: $detent)
         .onDisappear {
             session.options = nil
@@ -51,7 +55,7 @@ struct RecordSheet: View {
     private func stop() {
         let recording = recorder.stop()
         session.sheet = nil
-        session.expanded = recording?.id
+        session.expand(recording, player: player, library: library)
     }
 
     private func finish() {
@@ -72,7 +76,7 @@ struct CompactRecorder: View {
         VStack(spacing: 0) {
             Text(recorder.take?.title ?? "")
                 .font(.subheadline.weight(.semibold))
-                .padding(.top, 26)
+                .padding(.top, 19)
             TimelineView(.animation(paused: recorder.phase != .recording)) { context in
                 let now = recorder.displaySeconds()
                 VStack(spacing: 0) {
@@ -80,10 +84,10 @@ struct CompactRecorder: View {
                         .font(.footnote)
                         .monospacedDigit()
                         .foregroundStyle(.secondary)
-                        .padding(.top, 3)
+                        .padding(.top, 5)
                     LiveStrip(levels: recorder.levels, seconds: now)
                         .frame(height: 64)
-                        .padding(.top, 22)
+                        .padding(.top, 40)
                 }
             }
             Spacer(minLength: 0)
@@ -96,9 +100,10 @@ struct CompactRecorder: View {
             .buttonStyle(.plain)
             .glassEffect(.regular.interactive(), in: .circle)
             .accessibilityLabel("Stop")
-            .padding(.bottom, 22)
+            .padding(.bottom, 20)
         }
         .frame(maxWidth: .infinity)
+        .ignoresSafeArea(edges: .bottom)
     }
 }
 
@@ -108,16 +113,15 @@ struct LiveStrip: View {
 
     var body: some View {
         GeometryReader { proxy in
-            let window = Double(proxy.size.width / 60)
             WaveformBars(
                 peaks: levels,
                 duration: seconds,
-                visible: (seconds - window)...seconds,
+                visible: (seconds - WaveformPanel.window)...seconds,
                 playhead: seconds,
                 played: .record,
                 unplayed: .clear,
-                barWidth: 2,
-                spacing: 2
+                barWidth: 1,
+                spacing: 3
             )
             .background {
                 Path { path in
@@ -127,7 +131,6 @@ struct LiveStrip: View {
                 .stroke(Color.secondary.opacity(0.5), style: StrokeStyle(lineWidth: 1, dash: [1, 3]))
             }
         }
-        .padding(.horizontal, 16)
         .accessibilityLabel("Waveform")
     }
 }
