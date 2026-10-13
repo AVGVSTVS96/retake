@@ -8,6 +8,7 @@ import argparse
 import json
 import shutil
 import subprocess
+import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass, field
@@ -167,6 +168,7 @@ def main(argv: list[str] | None = None):
     branch = f"parity/{args.run}"
     head = git("rev-parse", args.start)
     git("branch", "-f", branch, head)
+    scoring = threading.Lock()
     slots: Queue = Queue()
     for slot in args.slots.split(","):
         slots.put(slot)
@@ -230,7 +232,9 @@ def main(argv: list[str] | None = None):
             trial.commit = git("rev-parse", "HEAD", cwd=tree)
             outs = takes(tree, here / name)
             if outs:
-                trial.objective, trial.scores = objective([score(args.target, str(o), set(moves)) for o in outs], moves, args.metric)
+                with scoring:
+                    pairs = [score(args.target, str(o), set(moves)) for o in outs]
+                trial.objective, trial.scores = objective(pairs, moves, args.metric)
                 trial.takes = [str(o) for o in outs]
             trial.seconds = round(time.time() - began, 1)
             return trial

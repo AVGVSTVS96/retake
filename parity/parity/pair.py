@@ -1,5 +1,6 @@
 import json
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
@@ -61,10 +62,18 @@ def scripted(f: Features) -> list[tuple[Event, float | None] | None]:
     return moves
 
 
+@lru_cache(maxsize=4)
+def recording(path: str) -> tuple[Features, list]:
+    """A recording's features and its script moves. The loop scores many takes against one reference, whose
+    moves cost a minute and a gigabyte to find in device footage, so they're found once."""
+    f = load(path)
+    return f, scripted(f)
+
+
 def score(ref_path: str, cand_path: str, only: set[str] | None = None) -> Pair:
-    ref, cand = load(ref_path), load(cand_path)
+    (ref, ref_moves), (cand, cand_moves) = recording(ref_path), recording(cand_path)
     moves = []
-    for step, a, b in zip(script(), scripted(ref), scripted(cand)):
+    for step, a, b in zip(script(), ref_moves, cand_moves):
         if only and step["id"] not in only:
             continue
         if not (a and b):
