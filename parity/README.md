@@ -105,6 +105,17 @@ Two instances of the same move in Apple's own footage set the floor: 2 switch 1.
 
 Before the error can compare motion, the frames have to match at rest: the same rows (the fixture) and the same layout. Comparing still frames element by element (box per glyph run, in points) found the row, player, card and full-sheet differences fixed alongside this.
 
+**First loop against it.** Move 2 (the row switch) from 20.8%, four rounds of three agents, one take per candidate, from the same commit and base take:
+
+| | Haiku 5.5 | Sonnet 5.5 |
+| --- | --- | --- |
+| kept | `.smooth(0.24)`, then `.timingCurve(0.25, 0.5, 0.3, 1, duration: 0.34)` | `.smooth(0.23)`, then two `.timingCurve` fits ending at `(0.1, 0.5, 0.25, 1, duration: 0.34)` |
+| loop's score | 16.8% | 16.0% |
+| winner re-taken (median of 3) | 16.8% | 19.9% |
+| 12 agent calls | $0.07, 281 s | $0.48, 109 s |
+
+Both fitted an ease-out curve to the reference's progress samples and landed on the same duration. Sonnet tried more levers (the list's insert animation, the player's fade delay), but its kept winner was one lucky take; Haiku's held up. On a move like this the limit is measurement, not the model: a take varies by 2–3 points on a loaded Mac, so accept winners on `--takes 3`. What's left of move 2 is mostly its end state: a few of Apple's rows are 1–1.6 pt taller than the same rows here, for no reason visible in the footage.
+
 What the device recordings need:
 
 - iPhone 16 Pro Max, portrait, light mode, Do Not Disturb on, the same text size in both apps.
