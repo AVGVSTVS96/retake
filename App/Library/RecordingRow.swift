@@ -55,7 +55,7 @@ struct RecordingRow: View {
         }
         .padding(.vertical, 11)
         .clipped()
-        .animation(.smooth(duration: 0.3), value: isExpanded)
+        .animation(.row, value: isExpanded)
     }
 }
 
