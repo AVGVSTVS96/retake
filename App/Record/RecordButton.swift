@@ -10,6 +10,7 @@ struct RecordButton: View {
     var body: some View {
         Button {
             player.pause()
+            withAnimation(.row) { session.expanded = nil }
             Task { await recorder.record(title: places.place) }
         } label: {
             Circle()

@@ -197,7 +197,7 @@ struct FullRecorder: View {
                 .contentTransition(.opacity)
                 .frame(width: 156, height: 60)
             }
-            .glassEffect(recorder.phase == .paused ? .regular.tint(.record.opacity(0.35)).interactive() : .regular.interactive(), in: .capsule)
+            .glassEffect(recorder.phase == .paused ? .regular.tint(.record.opacity(0.4)).interactive() : .regular.interactive(), in: .capsule)
             .accessibilityLabel(recorder.phase == .paused ? "Resume" : "Pause")
         } else {
             Button {

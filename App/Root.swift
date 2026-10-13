@@ -35,6 +35,7 @@ struct PhoneRoot: View {
                 RecordButton()
                     .matchedTransitionSource(id: TransitionID.record, in: transition)
                     .padding(.bottom, 1)
+                    .frame(maxHeight: .infinity, alignment: .bottom)
                     .ignoresSafeArea(.keyboard)
                     .transition(.opacity)
             }
