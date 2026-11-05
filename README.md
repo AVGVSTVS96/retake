@@ -1,6 +1,6 @@
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/header-dark.png">
-  <img alt="retake: Voice Memos, rebuilt. It never loses a take." src="docs/header-light.png" width="838">
+  <source media="(prefers-color-scheme: dark)" srcset="brand/assets/readme-dark.png">
+  <img alt="retake: Voice Memos, rebuilt. It never loses a take." src="brand/assets/readme-light.png" width="838">
 </picture>
 
 Apple's iOS 27 Voice Memos, rebuilt in SwiftUI: same screens, same gestures, same animations. It never loses a take.

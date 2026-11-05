@@ -2,11 +2,11 @@
 import PackageDescription
 
 let package = Package(
-    name: "MemoKit",
-    platforms: [.iOS("27.0")],
-    products: [.library(name: "MemoKit", targets: ["MemoKit"])],
-    targets: [
-        .target(name: "MemoKit"),
-        .testTarget(name: "MemoKitTests", dependencies: ["MemoKit"]),
-    ]
+  name: "MemoKit",
+  platforms: [.iOS("27.0")],
+  products: [.library(name: "MemoKit", targets: ["MemoKit"])],
+  targets: [
+    .target(name: "MemoKit"),
+    .testTarget(name: "MemoKitTests", dependencies: ["MemoKit"]),
+  ]
 )

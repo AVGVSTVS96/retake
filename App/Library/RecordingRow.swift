@@ -2,231 +2,246 @@ import MemoKit
 import SwiftUI
 
 struct RecordingRow: View {
-    let recording: Recording
-    let scope: Scope
-    let isExpanded: Bool
-    @Environment(Library.self) private var library
-    @Environment(Session.self) private var session
-    @Environment(Player.self) private var player
-    @Environment(\.isSelectedRow) private var isSelected
+  let recording: Recording
+  let scope: Scope
+  let isExpanded: Bool
+  @Environment(Library.self) private var library
+  @Environment(Session.self) private var session
+  @Environment(Player.self) private var player
+  @Environment(\.isSelectedRow) private var isSelected
 
-    var body: some View {
+  var body: some View {
+    VStack(alignment: .leading, spacing: 0) {
+      HStack {
         VStack(alignment: .leading, spacing: 0) {
-            HStack {
-                VStack(alignment: .leading, spacing: 0) {
-                    Group {
-                        if isExpanded, session.sheet == nil {
-                            TitleField(recording: recording, alignment: .leading)
-                        } else {
-                            Text(recording.title)
-                        }
-                    }
-                    .font(.headline)
-                    .lineLimit(1)
-                    HStack(spacing: 8) {
-                        Text(Format.listDate(recording.created))
-                        if recording.transcript != nil {
-                            Image(systemName: "quote.bubble")
-                                .font(.body)
-                                .accessibilityLabel("Transcription available")
-                        }
-                        Spacer()
-                        if !isExpanded {
-                            Text(Format.duration(recording.duration))
-                                .monospacedDigit()
-                                .transition(.identity)
-                        }
-                    }
-                    .font(.subheadline)
-                    .foregroundStyle(isSelected ? AnyShapeStyle(.white.opacity(0.85)) : AnyShapeStyle(Color.rowDetail))
-                }
-                .foregroundStyle(isSelected ? .white : .primary)
-                if isExpanded {
-                    RecordingMenu(recording: recording)
-                        .transition(.asymmetric(insertion: .opacity.animation(.easeOut(duration: 0.2)), removal: .identity))
-                }
+          Group {
+            if isExpanded, session.sheet == nil {
+              TitleField(recording: recording, alignment: .leading)
+            } else {
+              Text(recording.title)
             }
-            Reveal(fraction: isExpanded ? 1 : 0) {
-                if isExpanded {
-                    InlinePlayer(recording: recording)
-                        .transition(.asymmetric(insertion: .opacity.animation(.linear(duration: 0.27).delay(0.09)), removal: .identity))
-                }
+          }
+          .font(.headline)
+          .lineLimit(1)
+          HStack(spacing: 8) {
+            Text(Format.listDate(recording.created))
+            if recording.transcript != nil {
+              Image(systemName: "quote.bubble")
+                .font(.body)
+                .accessibilityLabel("Transcription available")
             }
+            Spacer()
+            if !isExpanded {
+              Text(Format.duration(recording.duration))
+                .monospacedDigit()
+                .transition(.identity)
+            }
+          }
+          .font(.subheadline)
+          .foregroundStyle(
+            isSelected ? AnyShapeStyle(.white.opacity(0.85)) : AnyShapeStyle(Color.rowDetail))
         }
-        .padding(.vertical, 11)
-        .clipped()
-        .animation(.row, value: isExpanded)
+        .foregroundStyle(isSelected ? .white : .primary)
+        if isExpanded {
+          RecordingMenu(recording: recording)
+            .transition(
+              .asymmetric(
+                insertion: .opacity.animation(.easeOut(duration: 0.2)), removal: .identity))
+        }
+      }
+      Reveal(fraction: isExpanded ? 1 : 0) {
+        if isExpanded {
+          InlinePlayer(recording: recording)
+            .transition(
+              .asymmetric(
+                insertion: .opacity.animation(.linear(duration: 0.27).delay(0.09)),
+                removal: .identity))
+        }
+      }
     }
+    .padding(.vertical, 11)
+    .clipped()
+    .animation(.row, value: isExpanded)
+  }
 }
 
 /// List snaps a cell to its new height when content animates inside it, but follows a layout whose
 /// height changes every frame, so the row grows through this one. It keeps the last content height
 /// so a collapse can shrink the row after the player is gone.
 private struct Reveal: Layout {
-    var fraction: Double
+  var fraction: Double
 
-    var animatableData: Double {
-        get { fraction }
-        set { fraction = newValue }
-    }
+  var animatableData: Double {
+    get { fraction }
+    set { fraction = newValue }
+  }
 
-    func makeCache(subviews: Subviews) -> CGFloat { 0 }
+  func makeCache(subviews: Subviews) -> CGFloat { 0 }
 
-    func updateCache(_ cache: inout CGFloat, subviews: Subviews) {}
+  func updateCache(_ cache: inout CGFloat, subviews: Subviews) {}
 
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout CGFloat) -> CGSize {
-        let size = subviews.first?.sizeThatFits(ProposedViewSize(width: proposal.width, height: nil))
-        return CGSize(width: size?.width ?? 0, height: (size?.height ?? cache) * fraction)
-    }
+  func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout CGFloat) -> CGSize
+  {
+    let size = subviews.first?.sizeThatFits(ProposedViewSize(width: proposal.width, height: nil))
+    return CGSize(width: size?.width ?? 0, height: (size?.height ?? cache) * fraction)
+  }
 
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout CGFloat) {
-        guard let content = subviews.first else { return }
-        let proposal = ProposedViewSize(width: bounds.width, height: nil)
-        cache = content.sizeThatFits(proposal).height
-        content.place(at: bounds.origin, proposal: proposal)
-    }
+  func placeSubviews(
+    in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout CGFloat
+  ) {
+    guard let content = subviews.first else { return }
+    let proposal = ProposedViewSize(width: bounds.width, height: nil)
+    cache = content.sizeThatFits(proposal).height
+    content.place(at: bounds.origin, proposal: proposal)
+  }
 }
 
 extension EnvironmentValues {
-    @Entry var isSelectedRow = false
+  @Entry var isSelectedRow = false
 }
 
 struct InlinePlayer: View {
-    let recording: Recording
-    @Environment(Library.self) private var library
-    @Environment(Session.self) private var session
-    @Environment(Player.self) private var player
+  let recording: Recording
+  @Environment(Library.self) private var library
+  @Environment(Session.self) private var session
+  @Environment(Player.self) private var player
 
-    var body: some View {
-        VStack(spacing: 0) {
-            TimelineView(.animation(paused: !player.isPlaying)) { _ in
-                let time = player.current == recording.id ? player.time() : 0
-                VStack(spacing: 9) {
-                    Scrubber(value: time, total: recording.duration) { player.seek(to: $0) }
-                        .padding(.horizontal, 1)
-                    HStack {
-                        Text(Format.duration(time))
-                        Spacer()
-                        Text(Format.remaining(recording.duration - time))
-                    }
-                    .font(.caption)
-                    .monospacedDigit()
-                    .foregroundStyle(.secondary)
-                }
-            }
-            .padding(.top, 18)
-            HStack {
-                Button {
-                    session.sheet = .recording(recording.id)
-                } label: {
-                    Image(systemName: "waveform")
-                        .font(.title2)
-                }
-                .tint(.accentColor)
-                .accessibilityLabel("Edit Recording")
-                Spacer()
-                Transport(size: .row)
-                Spacer()
-                Button {
-                    player.unload()
-                    session.expanded = nil
-                    library.trash([recording.id])
-                } label: {
-                    Image(systemName: "trash")
-                        .font(.title2)
-                }
-                .tint(.accentColor)
-                .accessibilityLabel("Delete")
-            }
-            .buttonStyle(.borderless)
-            .padding(.top, 18)
+  var body: some View {
+    VStack(spacing: 0) {
+      TimelineView(.animation(paused: !player.isPlaying)) { _ in
+        let time = player.current == recording.id ? player.time() : 0
+        VStack(spacing: 9) {
+          Scrubber(value: time, total: recording.duration) { player.seek(to: $0) }
+            .padding(.horizontal, 1)
+          HStack {
+            Text(Format.duration(time))
+            Spacer()
+            Text(Format.remaining(recording.duration - time))
+          }
+          .font(.caption)
+          .monospacedDigit()
+          .foregroundStyle(.secondary)
         }
+      }
+      .padding(.top, 18)
+      HStack {
+        Button {
+          session.sheet = .recording(recording.id)
+        } label: {
+          Image(systemName: "waveform")
+            .font(.title2)
+        }
+        .tint(.accentColor)
+        .accessibilityLabel("Edit Recording")
+        Spacer()
+        Transport(size: .row)
+        Spacer()
+        Button {
+          player.unload()
+          session.expanded = nil
+          library.trash([recording.id])
+        } label: {
+          Image(systemName: "trash")
+            .font(.title2)
+        }
+        .tint(.accentColor)
+        .accessibilityLabel("Delete")
+      }
+      .buttonStyle(.borderless)
+      .padding(.top, 18)
     }
+  }
 }
 
 struct Scrubber: View {
-    let value: TimeInterval
-    let total: TimeInterval
-    let onSeek: (TimeInterval) -> Void
-    @State private var dragging: TimeInterval?
+  let value: TimeInterval
+  let total: TimeInterval
+  let onSeek: (TimeInterval) -> Void
+  @State private var dragging: TimeInterval?
 
-    var body: some View {
-        GeometryReader { proxy in
-            let shown = dragging ?? value
-            let fraction = total > 0 ? min(1, max(0, shown / total)) : 0
-            ZStack(alignment: .leading) {
-                Capsule().fill(Color(.systemFill))
-                Capsule().fill(Color.primary).frame(width: proxy.size.width * fraction)
-            }
-            .frame(height: dragging == nil ? 6.7 : 9)
-            .frame(maxHeight: .infinity)
-            .contentShape(.rect)
-            .gesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { dragging = total * min(1, max(0, $0.location.x / proxy.size.width)) }
-                    .onEnded { _ in
-                        if let dragging { onSeek(dragging) }
-                        dragging = nil
-                    }
-            )
-            .animation(.spring(duration: 0.25), value: dragging == nil)
-        }
-        .frame(height: 16)
-        .accessibilityElement()
-        .accessibilityLabel("Track Position")
-        .accessibilityValue(Format.duration(value))
+  var body: some View {
+    GeometryReader { proxy in
+      let shown = dragging ?? value
+      let fraction = total > 0 ? min(1, max(0, shown / total)) : 0
+      ZStack(alignment: .leading) {
+        Capsule().fill(Color(.systemFill))
+        Capsule().fill(Color.primary).frame(width: proxy.size.width * fraction)
+      }
+      .frame(height: dragging == nil ? 6.7 : 9)
+      .frame(maxHeight: .infinity)
+      .contentShape(.rect)
+      .gesture(
+        DragGesture(minimumDistance: 0)
+          .onChanged { dragging = total * min(1, max(0, $0.location.x / proxy.size.width)) }
+          .onEnded { _ in
+            if let dragging { onSeek(dragging) }
+            dragging = nil
+          }
+      )
+      .animation(.spring(duration: 0.25), value: dragging == nil)
     }
+    .frame(height: 16)
+    .accessibilityElement()
+    .accessibilityLabel("Track Position")
+    .accessibilityValue(Format.duration(value))
+  }
 }
 
 struct Transport: View {
-    enum Size {
-        case row, sheet, bar
+  enum Size {
+    case row, sheet, bar
 
-        var skip: Font {
-            self == .sheet ? .system(size: 30) : .title2
-        }
-
-        var play: CGFloat {
-            switch self {
-            case .row: 33
-            case .sheet: 39
-            case .bar: 28
-            }
-        }
-
-        var spacing: CGFloat {
-            switch self {
-            case .row: 29
-            case .sheet: 23
-            case .bar: 32
-            }
-        }
+    var skip: Font {
+      self == .sheet ? .system(size: 30) : .title2
     }
 
-    let size: Size
-    var isEnabled = true
-    @Environment(Player.self) private var player
-
-    var body: some View {
-        HStack(spacing: size.spacing) {
-            Button { player.skip(by: -15) } label: {
-                Image(systemName: "gobackward.15").font(size.skip)
-            }
-            .accessibilityLabel("Rewind, 15 seconds")
-            Button { player.toggle() } label: {
-                Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
-                    .font(.system(size: size.play))
-                    .frame(width: size.play + 8, height: size.play + 8)
-                    .contentTransition(.symbolEffect(.replace))
-            }
-            .accessibilityLabel(player.isPlaying ? "Pause" : "Play")
-            Button { player.skip(by: 15) } label: {
-                Image(systemName: "goforward.15").font(size.skip)
-            }
-            .accessibilityLabel("Skip forward, 15 seconds")
-        }
-        .tint(.primary)
-        .buttonStyle(.borderless)
-        .disabled(!isEnabled)
+    var play: CGFloat {
+      switch self {
+      case .row: 33
+      case .sheet: 39
+      case .bar: 28
+      }
     }
+
+    var spacing: CGFloat {
+      switch self {
+      case .row: 29
+      case .sheet: 23
+      case .bar: 32
+      }
+    }
+  }
+
+  let size: Size
+  var isEnabled = true
+  @Environment(Player.self) private var player
+
+  var body: some View {
+    HStack(spacing: size.spacing) {
+      Button {
+        player.skip(by: -15)
+      } label: {
+        Image(systemName: "gobackward.15").font(size.skip)
+      }
+      .accessibilityLabel("Rewind, 15 seconds")
+      Button {
+        player.toggle()
+      } label: {
+        Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
+          .font(.system(size: size.play))
+          .frame(width: size.play + 8, height: size.play + 8)
+          .contentTransition(.symbolEffect(.replace))
+      }
+      .accessibilityLabel(player.isPlaying ? "Pause" : "Play")
+      Button {
+        player.skip(by: 15)
+      } label: {
+        Image(systemName: "goforward.15").font(size.skip)
+      }
+      .accessibilityLabel("Skip forward, 15 seconds")
+    }
+    .tint(.primary)
+    .buttonStyle(.borderless)
+    .disabled(!isEnabled)
+  }
 }

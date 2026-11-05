@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Rebuilds site/public/media from the app repo's real screenshots and motion captures.
+# Rebuilds site/public/media from the app's real screenshots and motion captures.
 set -euo pipefail
 cd "$(dirname "$0")"
-raw=${RETAKE:-$HOME/Developer/voice-memos}/shots
+raw=../shots
 out=public/media
 mkdir -p "$out"
 

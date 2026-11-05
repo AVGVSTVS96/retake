@@ -2,7 +2,7 @@
 
 The source of truth for how we talk about retake. The site, the README, the OG image and the launch post all draw from here. When something here and something there disagree, fix it here first.
 
-Every claim is checked against `~/Developer/voice-memos` (Oct 9 2026). How each number was counted is in **Numbers** at the bottom.
+Every claim is checked against this repo (Oct 9 2026). How each number was counted is in **Numbers** at the bottom.
 
 ## One line
 

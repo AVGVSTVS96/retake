@@ -4,7 +4,7 @@ Bassim's saves (me.db on the Mac, searched Oct 10 2026 for waveform, voice memos
 
 ## The one studied deeply
 
-**retake's own recording screen** (`~/Developer/voice-memos/shots/raw/iphone-18-pro-max-recording-full-*.png`, and the motion captures). Every motif is lifted from it and measured, not imitated: the record button's ring and disc, the 2px playhead with a dot at each end, bars about 2pt wide on a 4.5–5pt pitch with a dotted line for silence, trim's yellow selection, the system red, blue and grays sampled from the PNGs. The hero strip's record and stop moments are read from the clip's frames. The brand is the app's parts, rearranged.
+**retake's own recording screen** (`shots/raw/iphone-18-pro-max-recording-full-*.png`, and the motion captures). Every motif is lifted from it and measured, not imitated: the record button's ring and disc, the 2px playhead with a dot at each end, bars about 2pt wide on a 4.5–5pt pitch with a dotted line for silence, trim's yellow selection, the system red, blue and grays sampled from the PNGs. The hero strip's record and stop moments are read from the clip's frames. The brand is the app's parts, rearranged.
 
 ## From Bassim's saves and the brands he approved
 
