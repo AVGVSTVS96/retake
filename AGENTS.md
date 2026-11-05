@@ -4,7 +4,7 @@ Apple's iOS 27 Voice Memos rebuilt in SwiftUI (iPhone, iPad, iPhone Duo), with i
 
 ## Commands
 
-- `bun run check`: oxlint, oxfmt, `tsc` per workspace, `swift format lint`. Lefthook runs it before each commit; CI runs it and the two below.
+- `bun run check`: oxlint, oxfmt, `tsc` per workspace, `swift format lint`. Lefthook runs it before each commit and CI on each push. GitHub's runners have no Xcode 27 yet, so the two below run only on the Mac.
 - `bun run fix`: oxlint, oxfmt and swift format, fixing what they can.
 - `scripts/mac scripts/build`: syncs to the Mac, runs xcodegen, builds for the simulator with warnings as errors. Set `RETAKE_MAC` to sync into a folder of your own.
 - `scripts/mac scripts/test`: MemoKit's tests on an iOS 27 simulator.
