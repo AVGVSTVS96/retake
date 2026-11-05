@@ -1,9 +1,11 @@
 #!/bin/bash
-# Runs on the Mac. MemoKit tests on an iOS 27 simulator.
+# Runs on the Mac. swift format, then MemoKit tests on an iOS 27 simulator, warnings as errors.
 set -euo pipefail
 cd "$(dirname "$0")/.."
+swift format lint --strict -r App Widgets Activity Packages UITests
 source scripts/sim-lib
 id=$(ensure "iPhone 17 Pro" iPhone-17-Pro)
 cd Packages/MemoKit
-xcodebuild test -scheme MemoKit -destination "id=$id" -derivedDataPath ../../build/tests 2>&1 \
-  | grep -E "error:|✘|Test run with|TEST (SUCC|FAIL)" || true
+xcodebuild test -scheme MemoKit -destination "id=$id" -derivedDataPath ../../build/tests \
+  SWIFT_TREAT_WARNINGS_AS_ERRORS=YES 2>&1 \
+  | { grep -E "error:|✘|Test run with|TEST (SUCC|FAIL)" || true; }

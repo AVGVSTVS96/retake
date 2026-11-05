@@ -3,6 +3,6 @@
 set -e
 cd "$(dirname "$0")/.."
 scripts/sync
-ssh mac "cd ~/Developer/voice-memos && $*"
+ssh mac "cd ${RETAKE_MAC:-Developer/voice-memos} && $*"
 mkdir -p shots/raw
-rsync -a mac:Developer/voice-memos/shots/raw/ shots/raw/ 2>/dev/null || true
+rsync -a "mac:${RETAKE_MAC:-Developer/voice-memos}/shots/raw/" shots/raw/ 2>/dev/null || true

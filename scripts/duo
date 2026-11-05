@@ -8,7 +8,7 @@ source scripts/sim-lib
 APP=build/duo/Build/Products/Debug-iphonesimulator/Retake.app
 id=$(ensure "iPhone Duo" iPhone-Duo)
 xcodegen generate -q
-xcodebuild -project Retake.xcodeproj -scheme Retake -sdk iphonesimulator -configuration Debug -derivedDataPath build/duo -quiet build 2>&1 | grep -E "error" || true
+xcodebuild -project Retake.xcodeproj -scheme Retake -sdk iphonesimulator -configuration Debug -derivedDataPath build/duo -quiet build 2>&1 | { grep -E "error" || true; }
 xcrun simctl bootstatus "$id" -b >/dev/null
 xcrun simctl status_bar "$id" override --time 9:41 --batteryState charged --batteryLevel 100 >/dev/null 2>&1 || true
 xcrun simctl privacy "$id" grant microphone "$BUNDLE" >/dev/null 2>&1 || true
