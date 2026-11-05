@@ -26,11 +26,11 @@ A test records, stops and starts a new take 300 times in a row and checks every 
 
 Built against Apple's iOS 27 screenshots, the English strings from the iOS 27 simulator runtime, and 60 fps footage of the real app, frame-counted (±17 ms, from the first frame that moves; retake measured the same way from a simulator capture of `scripts/motion`):
 
-| moment | Voice Memos | retake |
-| --- | --- | --- |
-| tap record → card settles | ~220 ms, no overshoot | ~215 ms, no overshoot |
-| card → full sheet | follows the finger, ~200 ms after release | the system sheet, same detents |
-| stop → row appears | ~330 ms save, then ~215 ms collapse* | ~190 ms collapse, no wait |
+| moment                    | Voice Memos                               | retake                         |
+| ------------------------- | ----------------------------------------- | ------------------------------ |
+| tap record → card settles | ~220 ms, no overshoot                     | ~215 ms, no overshoot          |
+| card → full sheet         | follows the finger, ~200 ms after release | the system sheet, same detents |
+| stop → row appears        | ~330 ms save, then ~215 ms collapse*      | ~190 ms collapse, no wait      |
 
 \* From iOS 26's screen recording. The iOS 27 footage doesn't film stop from the card; its Done collapse is the same ~215 ms.
 
@@ -49,6 +49,8 @@ open Retake.xcodeproj
 Xcode 27 builds for iPhone and iPad; the iPhone Duo simulator needs Xcode 27.1.
 
 `MemoKit` (in `Packages/MemoKit`) is the engine: recorder, library, playback, editing and transcription, about 1,400 lines with 23 tests. Run them on the simulator with `xcodebuild test -scheme MemoKit`. `App/` is the SwiftUI. Launch with `-demo` for a sample library and a fake microphone.
+
+The website, brand and launch copy are in `site/`, `brand/` and `copy/`. `bun install && bun run check` lints, formats and type-checks them and the Swift.
 
 ## License
 
