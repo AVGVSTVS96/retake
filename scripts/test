@@ -1,8 +1,7 @@
 #!/bin/bash
-# Runs on the Mac. swift format, then MemoKit tests on an iOS 27 simulator, warnings as errors.
+# Runs on the Mac. MemoKit tests on an iOS 27 simulator, warnings as errors.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-swift format lint --strict -r App Widgets Activity Packages UITests
 source scripts/sim-lib
 id=$(ensure "iPhone 17 Pro" iPhone-17-Pro)
 cd Packages/MemoKit

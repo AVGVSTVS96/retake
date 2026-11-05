@@ -6,7 +6,7 @@ Before posting: the repo is public and retake's own ms are re-measured (see MESS
 
 ## The post
 
-*(Attach `brand/assets/x-clip.mp4`: record, stop, record again, 11.6 s, cut from `testRecordStopRecordAgain.mov`.)*
+_(Attach `brand/assets/x-clip.mp4`: record, stop, record again, 11.6 s, cut from `testRecordStopRecordAgain.mov`.)_
 
 ```
 ios 27 voice memos is pretty until you stop a recording and start a new one
@@ -23,7 +23,7 @@ it's called retake. mit, iphone, ipad and iphone duo
 link in replies
 ```
 
-*(Bassim OKd quoting him, Oct 10. Approved line: `it looks good. but do anything complicated with it and it probably breaks.`)*
+_(Bassim OKd quoting him, Oct 10. Approved line: `it looks good. but do anything complicated with it and it probably breaks.`)_
 
 Alt text: A phone screen recording of retake. Tapping the red record button raises a recording card with a live red waveform. Tapping stop collapses the card back into the button, and "New Recording" appears at the top of the list. It repeats three times.
 
@@ -43,7 +43,7 @@ Four posts. The first is the post above without "link in replies".
 
 **2. The stop**
 
-*(Attach `brand/assets/x-2-stop.png`.)*
+_(Attach `brand/assets/x-2-stop.png`.)_
 
 ```
 the moment that matters is stop
@@ -67,7 +67,7 @@ these are real threads on apple community:
 retake writes every take to disk as it records, and every surface reads one recorder state
 ```
 
-*(No image. Links to the three threads go in a reply under this one if anyone asks; they're in `reference/SPEC.md` section 6.)*
+_(No image. Links to the three threads go in a reply under this one if anyone asks; they're in `reference/SPEC.md` section 6.)_
 
 **4. Links**
 

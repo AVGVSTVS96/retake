@@ -1,0 +1,29 @@
+{
+  "name": "retake",
+  "private": true,
+  "workspaces": {
+    "packages": [
+      "site",
+      "brand",
+      "copy"
+    ],
+    "catalog": {
+      "@types/bun": "1.4.4",
+      "typescript": "7.0.2"
+    }
+  },
+  "type": "module",
+  "scripts": {
+    "check": "oxlint --report-unused-disable-directives && oxfmt --check && bun --filter '*' typecheck && swift format lint --strict -r App Widgets Activity Packages UITests",
+    "fix": "oxlint --fix; oxfmt; swift format -i -r App Widgets Activity Packages UITests",
+    "prepare": "lefthook install"
+  },
+  "devDependencies": {
+    "@oxlint/plugins": "1.91.0",
+    "lefthook": "2.2.2",
+    "oxfmt": "0.76.0",
+    "oxlint": "1.91.0",
+    "oxlint-tsgolint": "7.0.2006",
+    "ultracite": "8.1.1"
+  }
+}

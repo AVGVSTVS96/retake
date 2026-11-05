@@ -123,26 +123,26 @@ Bassim's attitude: blunt, sure of the work, a craftsman showing what he made. No
 - None of the hype words banned in the brand-it skill.
 - No Apple logo, no Voice Memos icon, no Apple screenshots or footage.
 
-| Don't | Do |
-| --- | --- |
-| Voice Memos, but finally done right. | Voice Memos, rebuilt. It never loses a take. |
-| Lightning-fast saves. | The file closes the moment you tap stop. |
-| Pixel-perfect parity with iOS 27. | Built against 60 fps footage of iOS 27, frame-counted. |
-| Bulletproof recording engine. | Every take hits the disk as you record. |
-| Apple's buggy app vs ours. | 109 people report Lock Screen recordings stopping after a few seconds. |
+| Don't                                | Do                                                                     |
+| ------------------------------------ | ---------------------------------------------------------------------- |
+| Voice Memos, but finally done right. | Voice Memos, rebuilt. It never loses a take.                           |
+| Lightning-fast saves.                | The file closes the moment you tap stop.                               |
+| Pixel-perfect parity with iOS 27.    | Built against 60 fps footage of iOS 27, frame-counted.                 |
+| Bulletproof recording engine.        | Every take hits the disk as you record.                                |
+| Apple's buggy app vs ours.           | 109 people report Lock Screen recordings stopping after a few seconds. |
 
 ## Numbers
 
-| Claim | Source and how it was counted |
-| --- | --- |
-| ~330 ms of nothing after stop, then ~215 ms collapse | `reference/SPEC.md` 4.5, frame-counted at 60 fps (±17 ms). **This is iOS 26's screen recording**: the iOS 27 footage never films stop from the card (SPEC 7). iOS 27's Done collapse is the same ~215 ms. |
-| retake has no wait after stop | Code: `Recorder.stop()` closes the file synchronously (`TakeWriter.finish()`), inserts the row, then returns. AAC compression runs after, in a background task (`Library.finalize`). |
-| card rises with no overshoot, ~280 ms in iOS 27 | SPEC 4.1 (touch to settle 270 to 300 ms; the card body alone ~220 ms). |
-| retake card ~220 ms, stop collapse ~180 ms | README. **Not re-measured**: no measurement file in the repo. A rough read of the simulator capture (`testRecordStopRecordAgain.mov`, variable frame rate) gives ~220 ms for the card and ~245 ms from stop to a settled row. Re-measure at 60 fps before quoting retake's own ms anywhere. |
-| 300 takes, right length | `RecorderTests.hammeringRecordStopNeverLosesATake`: 300 cycles, every 5th with a pause; every id and title present; file length within 30 ms of the recorded length after AAC compression. |
-| ~4,100 lines of Swift | `fd -e swift \| xargs cat \| wc -l` = 4,095 (blank lines included). Engine (MemoKit) 1,389, its tests 449. |
-| 23 engine tests, 3 UI tests | `rg -c '@Test'`: Recorder 10, Transcription 10, Playback 3. `UITests/FlowTests.swift`: 3. |
-| 17, 90, 109 me-too | SPEC 6, Apple Community threads, rows 4, 5, 1. |
+| Claim                                                | Source and how it was counted                                                                                                                                                                                                                                                               |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ~330 ms of nothing after stop, then ~215 ms collapse | `reference/SPEC.md` 4.5, frame-counted at 60 fps (±17 ms). **This is iOS 26's screen recording**: the iOS 27 footage never films stop from the card (SPEC 7). iOS 27's Done collapse is the same ~215 ms.                                                                                   |
+| retake has no wait after stop                        | Code: `Recorder.stop()` closes the file synchronously (`TakeWriter.finish()`), inserts the row, then returns. AAC compression runs after, in a background task (`Library.finalize`).                                                                                                        |
+| card rises with no overshoot, ~280 ms in iOS 27      | SPEC 4.1 (touch to settle 270 to 300 ms; the card body alone ~220 ms).                                                                                                                                                                                                                      |
+| retake card ~220 ms, stop collapse ~180 ms           | README. **Not re-measured**: no measurement file in the repo. A rough read of the simulator capture (`testRecordStopRecordAgain.mov`, variable frame rate) gives ~220 ms for the card and ~245 ms from stop to a settled row. Re-measure at 60 fps before quoting retake's own ms anywhere. |
+| 300 takes, right length                              | `RecorderTests.hammeringRecordStopNeverLosesATake`: 300 cycles, every 5th with a pause; every id and title present; file length within 30 ms of the recorded length after AAC compression.                                                                                                  |
+| ~4,100 lines of Swift                                | `fd -e swift \| xargs cat \| wc -l` = 4,095 (blank lines included). Engine (MemoKit) 1,389, its tests 449.                                                                                                                                                                                  |
+| 23 engine tests, 3 UI tests                          | `rg -c '@Test'`: Recorder 10, Transcription 10, Playback 3. `UITests/FlowTests.swift`: 3.                                                                                                                                                                                                   |
+| 17, 90, 109 me-too                                   | SPEC 6, Apple Community threads, rows 4, 5, 1.                                                                                                                                                                                                                                              |
 
 ¹ Voice Memos timing from iOS 26's screen recording, frame-counted at 60 fps. iOS 27's footage shows the same collapse after Done.
 ² Within 30 ms, after compression to AAC.

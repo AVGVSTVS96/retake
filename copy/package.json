@@ -1,0 +1,13 @@
+{
+  "name": "retake-copy",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "facts": "bun facts.ts",
+    "typecheck": "tsc"
+  },
+  "devDependencies": {
+    "@types/bun": "catalog:",
+    "typescript": "catalog:"
+  }
+}

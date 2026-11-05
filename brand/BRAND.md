@@ -11,18 +11,18 @@ Open `specimen.html` to see all of it working. `shots/` has it rendered in light
 - **Native.** It should feel like it belongs on an iPhone: Apple's grays, Apple's red, real screenshots, nothing drawn that the app doesn't have.
 - **Blunt, in Bassim's words.** His quote is the one place the page has an attitude, and it's his.
 
-| it is | it isn't |
-| --- | --- |
-| Voice Memos, rebuilt | a Voice Memos theme, a "better" Voice Memos |
-| measured against 60 fps footage | "pixel-perfect", "100% parity" |
-| a take that's always on disk | "bug-free", "bulletproof" |
+| it is                                     | it isn't                                            |
+| ----------------------------------------- | --------------------------------------------------- |
+| Voice Memos, rebuilt                      | a Voice Memos theme, a "better" Voice Memos         |
+| measured against 60 fps footage           | "pixel-perfect", "100% parity"                      |
+| a take that's always on disk              | "bug-free", "bulletproof"                           |
 | the record button, the playhead, the bars | microphones, soundwaves as decoration, Apple's icon |
 
 ## Name and voice
 
 - **Always lowercase "retake"**, also at the start of a sentence, in titles and in the logo. Never Retake, ReTake, RETAKE.
 - A retake is recording it again. That's where Voice Memos falls apart, and it's a second take on Voice Memos. Say it once, plainly, near the bottom. Never pun on it in headlines.
-- The words live in `../copy/MESSAGING.md`; numbers and names in `../copy/facts.json` (rebuild with `bun copy/facts.mjs`).
+- The words live in `../copy/MESSAGING.md`; numbers and names in `../copy/facts.json` (rebuild with `bun copy/facts.ts`).
 - Bassim's approved line, exactly: "it looks good. but do anything complicated with it and it probably breaks." signed "bassim".
 - Never Apple's logo, the Voice Memos icon, or Apple's screenshots or footage. Our own screenshots of retake are fine; they look like Voice Memos, which is the point. The footer always says "Not affiliated with Apple. Voice Memos is a trademark of Apple Inc."
 
@@ -53,43 +53,43 @@ Rules:
 
 All three are under the SIL Open Font License, subset to Latin and self-hosted from `fonts/` with their licenses.
 
-| family | file | use |
-| --- | --- | --- |
-| **Funnel Display** | `funnel-display.woff2` (variable 300–800) | logo, headlines, the quote |
-| **Funnel Sans** | `funnel-sans.woff2` (variable 300–800) | body, UI, buttons, labels, figures |
-| **Geist Mono** | `geist-mono.woff2` | code only |
+| family             | file                                      | use                                |
+| ------------------ | ----------------------------------------- | ---------------------------------- |
+| **Funnel Display** | `funnel-display.woff2` (variable 300–800) | logo, headlines, the quote         |
+| **Funnel Sans**    | `funnel-sans.woff2` (variable 300–800)    | body, UI, buttons, labels, figures |
+| **Geist Mono**     | `geist-mono.woff2`                        | code only                          |
 
 The app itself is SF Pro, which can't be shipped on the web. Funnel is the distinctive choice over the safe one (Inter Display reads as SF's twin and disappears). Its cut-in joins give "retake" a voice, and Display and Sans were drawn together, with tabular figures (`tnum`) for every time and duration.
 
-| role | family · weight | size / line | tracking |
-| --- | --- | --- | --- |
-| display | Display 700 | 92/94, fluid to 40 | −0.045em |
-| h2 | Display 650 | 54/56 (mobile 34/36) | −0.035em |
-| quote | Display 500 | 50/57 (mobile 30/34) | −0.03em, hanging open quote |
-| lede | Sans 400 | 22/32 | 0 |
-| body | Sans 400 | 17/26 | −0.003em |
-| small | Sans 400–600 | 13–15 | 0 |
-| code | Mono 400 | 14/26 | 0 |
+| role    | family · weight | size / line          | tracking                    |
+| ------- | --------------- | -------------------- | --------------------------- |
+| display | Display 700     | 92/94, fluid to 40   | −0.045em                    |
+| h2      | Display 650     | 54/56 (mobile 34/36) | −0.035em                    |
+| quote   | Display 500     | 50/57 (mobile 30/34) | −0.03em, hanging open quote |
+| lede    | Sans 400        | 22/32                | 0                           |
+| body    | Sans 400        | 17/26                | −0.003em                    |
+| small   | Sans 400–600    | 13–15                | 0                           |
+| code    | Mono 400        | 14/26                | 0                           |
 
 ## Color
 
 Apple's system colors, taken from retake's own screenshots, each meaning what it means in the app. There are three accents, never one, and each has a job.
 
-| token | light | dark | means |
-| --- | --- | --- | --- |
-| `--paper` | `#F2F2F7` | `#000000` | page; iOS grouped background, and the app's own black |
-| `--surface` | `#FFFFFF` | `#1C1C1E` | cards, the code block, the timing chart; the app's sheet |
-| `--sunk` | `#E9E9EF` | `#111113` | segmented controls, the collapse bar |
-| `--ink` | `#111113` | `#F5F5F7` | text |
-| `--ink-2` | `#55555B` | `#AEAEB2` | secondary text |
-| `--ink-3` | `#6B6B71` (4.7:1) | `#8E8E93` (6.4:1) | captions, saved bars, the idle playhead |
-| `--red` | `#FF383C` | `#FF4245` | **recording.** The live take, the mark, the one highlighted thing |
-| `--red-ink` | `#D3141B` | `#FF6961` | red as text on paper |
-| `--trim` | `#F5E8B5` | (yellow ink) | **selected.** Trim's tint as a band under one phrase by day; by night the phrase is set in `--yellow` |
-| `--yellow` | `#FFCC00` | `#FFD60A` | trim's handles; the highlighted phrase in dark |
-| `--blue` | `#0088FF` | `#0091FF` | **playing.** Focus rings |
-| `--link` | `#0060C7` | `#5CB3FF` | links |
-| `--bezel` | `#1D1D1F` | `#2C2C2E` | the phone frame |
+| token       | light             | dark              | means                                                                                                 |
+| ----------- | ----------------- | ----------------- | ----------------------------------------------------------------------------------------------------- |
+| `--paper`   | `#F2F2F7`         | `#000000`         | page; iOS grouped background, and the app's own black                                                 |
+| `--surface` | `#FFFFFF`         | `#1C1C1E`         | cards, the code block, the timing chart; the app's sheet                                              |
+| `--sunk`    | `#E9E9EF`         | `#111113`         | segmented controls, the collapse bar                                                                  |
+| `--ink`     | `#111113`         | `#F5F5F7`         | text                                                                                                  |
+| `--ink-2`   | `#55555B`         | `#AEAEB2`         | secondary text                                                                                        |
+| `--ink-3`   | `#6B6B71` (4.7:1) | `#8E8E93` (6.4:1) | captions, saved bars, the idle playhead                                                               |
+| `--red`     | `#FF383C`         | `#FF4245`         | **recording.** The live take, the mark, the one highlighted thing                                     |
+| `--red-ink` | `#D3141B`         | `#FF6961`         | red as text on paper                                                                                  |
+| `--trim`    | `#F5E8B5`         | (yellow ink)      | **selected.** Trim's tint as a band under one phrase by day; by night the phrase is set in `--yellow` |
+| `--yellow`  | `#FFCC00`         | `#FFD60A`         | trim's handles; the highlighted phrase in dark                                                        |
+| `--blue`    | `#0088FF`         | `#0091FF`         | **playing.** Focus rings                                                                              |
+| `--link`    | `#0060C7`         | `#5CB3FF`         | links                                                                                                 |
+| `--bezel`   | `#1D1D1F`         | `#2C2C2E`         | the phone frame                                                                                       |
 
 - **Dark is the app's dark.** retake's dark screenshots are pure black with `#1C1C1E` sheets, so the page is black and cards are `#1C1C1E`: the screenshots sit on their own background, and each layer toward you is lighter. The bezel lifts to `#2C2C2E` so a phone reads against black.
 - **Trim yellow stays light.** By day it's a pale band under the phrase. By night it moves into the ink at full strength (`#FFD60A` text, no band): the app's dark trim tint is an olive that read as mud under white text and fought GitHub's blue-black, so it isn't used on the page.

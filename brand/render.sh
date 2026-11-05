@@ -5,7 +5,7 @@ cd "$(dirname "$0")"
 export TMPDIR=${TMPDIR:-$PWD/../.scratch}
 mkdir -p "$TMPDIR"
 shoot="bun $HOME/.agents/skills/brand-it/scripts/shoot.mjs"
-bun logo/gen.mjs
+bun logo/gen.ts
 cd assets
 $shoot og.html 1200x630 og.png
 $shoot github.html 1280x640 github.png

@@ -1,6 +1,6 @@
-import { defineConfig } from "vite"
+import { defineConfig } from "vite";
 
 export default defineConfig({
+  build: { assetsInlineLimit: 0, emptyOutDir: true, outDir: "dist" },
   server: { fs: { allow: [".."] } },
-  build: { outDir: "dist", emptyOutDir: true, assetsInlineLimit: 0 },
-})
+});
