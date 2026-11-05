@@ -1,0 +1,29 @@
+<!doctype html><html class="light"><meta charset="utf-8"><link rel="stylesheet" href="base.css">
+<style>
+body { --w: 1600px; --h: 900px; }
+.card { padding: 72px; }
+.lockup { height: 30px; }
+h1 { margin-top: 96px; font-size: 96px !important; }
+.sub { margin: 20px 0 0; font: 400 26px/1.4 var(--text); color: var(--ink-2); max-width: 30em; }
+canvas { position: absolute; left: 72px; right: 72px; bottom: 120px; width: 1456px; height: 260px; }
+.ends { position: absolute; left: 72px; right: 72px; bottom: 72px; display: flex; justify-content: space-between; border-top: 1px solid var(--hair); padding-top: 12px; font: 400 18px var(--text); color: var(--ink-3); }
+</style>
+<body><div class="card x">
+<img class="lockup" src="../logo/lockup.svg" alt="">
+<h1>300 takes in a row.</h1>
+<p class="sub">A test records, stops and starts again 300 times. Every take is there, within 30 ms of its length.</p>
+<canvas></canvas>
+<div class="ends"><span>New Recording</span><span>New Recording 300</span></div>
+</div>
+<script>
+const c = document.querySelector("canvas"), r = 2
+c.width = 1456 * r; c.height = 260 * r
+const ctx = c.getContext("2d"); ctx.scale(r, r)
+const probe = document.createElement("i"); probe.style.color = "var(--ink-3)"; document.body.append(probe)
+ctx.fillStyle = getComputedStyle(probe).color
+const pitch = 1456 / 300
+for (let i = 0; i < 300; i++) {
+  const ms = 50 + (i % 7) * 10 + (i % 5 === 0 ? 20 : 0), h = ms / 130 * 240
+  ctx.beginPath(); ctx.roundRect(i * pitch + pitch / 2 - 1.25, 130 - h / 2, 2.5, h, 1.25); ctx.fill()
+}
+</script>
