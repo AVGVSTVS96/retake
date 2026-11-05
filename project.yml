@@ -22,7 +22,7 @@ targets:
   Retake:
     type: application
     platform: iOS
-    sources: [App, Shared]
+    sources: [App, Activity]
     dependencies:
       - package: MemoKit
       - target: RetakeWidgets
@@ -49,7 +49,7 @@ targets:
   RetakeWidgets:
     type: app-extension
     platform: iOS
-    sources: [Widgets, Shared]
+    sources: [Widgets, Activity]
     info:
       path: Widgets/Info.plist
       properties:
