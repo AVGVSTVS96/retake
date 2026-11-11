@@ -28,7 +28,7 @@ scripts/gui /usr/bin/env DEVELOPER_DIR=/Applications/Xcode-27.3-beta.app/Content
   CODE_SIGN_STYLE=Automatic CODE_SIGN_IDENTITY="Apple Development" DEVELOPMENT_TEAM=6SV62PQ76B
 mkdir Payload
 cp -R build/Build/Products/Release-iphoneos/Retake.app Payload/
-ditto -c -k --keepParent Payload Retake.ipa
+ditto -c -k --norsrc --noextattr --keepParent Payload Retake.ipa
 MAC
 dir=$HOME/.local/share/retake/hangar
 mkdir -p "$dir"
