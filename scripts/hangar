@@ -1,0 +1,38 @@
+#!/bin/sh
+# Builds GitHub's main on the Mac (`ssh mac`) for the team's development devices and puts it in hangar, the app on
+# Bassim's iPhone that installs his development apps when he taps, from any network (~/Developer/hangar on this box).
+# The build number is main's commit count, and the build registers the URL scheme com.shahidy.retake-<build>
+# (project.yml), which hangar opens to know that build is installed and to bring retake back up. project.yml signs
+# nothing, so simulator builds need no team; this build signs with the team's development certificate, in the Mac's
+# login session (scripts/gui), and with Xcode 27.3 beta, the iOS his Duo runs. Notes default to main's last commit.
+# Usage: scripts/hangar [--notes '<one line on what changed>']
+set -e
+cd "$(dirname "$0")/.."
+case $1 in
+  ('') notes= ;;
+  (--notes) notes=$2 ;;
+  (*) echo "usage: scripts/hangar [--notes '<one line on what changed>']" >&2; exit 2 ;;
+esac
+git fetch -q origin main
+build=$(git rev-list --count origin/main)
+notes=${notes:-$(git log -1 --format=%s origin/main)}
+ssh mac 'rm -rf Developer/retake-hangar && mkdir -p Developer/retake-hangar'
+git archive origin/main | ssh mac tar -x -C Developer/retake-hangar
+ssh mac sh -s "$build" <<'MAC'
+set -e
+cd ~/Developer/retake-hangar
+/opt/homebrew/bin/xcodegen generate -q
+scripts/gui /usr/bin/env DEVELOPER_DIR=/Applications/Xcode-27.3-beta.app/Contents/Developer "$HOME/.local/bin/turn" \
+  xcodebuild build -project Retake.xcodeproj -scheme Retake -destination generic/platform=iOS -configuration Release \
+  -derivedDataPath build -allowProvisioningUpdates -quiet CURRENT_PROJECT_VERSION="$1" \
+  CODE_SIGN_STYLE=Automatic CODE_SIGN_IDENTITY="Apple Development" DEVELOPMENT_TEAM=6SV62PQ76B
+mkdir Payload
+cp -R build/Build/Products/Release-iphoneos/Retake.app Payload/
+ditto -c -k --keepParent Payload Retake.ipa
+MAC
+dir=$HOME/.local/share/retake/hangar
+mkdir -p "$dir"
+scp -q mac:Developer/retake-hangar/Retake.ipa "$dir/Retake-$build.ipa"
+find "$dir" -name 'Retake-*.ipa' ! -name "Retake-$build.ipa" -delete
+"$HOME/Developer/hangar/bin/hangar" put "$dir/Retake-$build.ipa" --notes "$notes"
+echo "retake build $build (main $(git rev-parse --short origin/main)) is in hangar"

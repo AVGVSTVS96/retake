@@ -47,6 +47,8 @@ targets:
         NSSpeechRecognitionUsageDescription: retake transcribes your recordings on device.
         NSLocationWhenInUseUsageDescription: retake names new recordings after where you are.
         NSSupportsLiveActivities: true
+        CFBundleURLTypes:
+          - CFBundleURLSchemes: [$(PRODUCT_BUNDLE_IDENTIFIER)-$(CURRENT_PROJECT_VERSION)]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.shahidy.retake

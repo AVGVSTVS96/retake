@@ -8,6 +8,7 @@ Apple's iOS 27 Voice Memos rebuilt in SwiftUI (iPhone, iPad, iPhone Duo), with i
 - `bun run fix`: oxlint, oxfmt and swift format, fixing what they can.
 - `scripts/mac scripts/build`: syncs to the Mac, runs xcodegen, builds for the simulator with warnings as errors. Set `RETAKE_MAC` to sync into a folder of your own.
 - `scripts/mac scripts/test`: MemoKit's tests on an iOS 27 simulator.
+- `scripts/hangar [--notes '<what changed>']`: builds main on the Mac for development and puts it in hangar, which installs it on Bassim's Duo when he taps. Each build registers the URL scheme `com.shahidy.retake-<build>` that tells hangar it's installed.
 - `scripts/mac scripts/sim …`, `scripts/mac scripts/duo`, `scripts/mac scripts/motion`: screenshots and motion captures into `shots/`.
 - `bun --cwd site run dev`, `bun --cwd site run media` (site images from `shots/`), `bun --cwd brand run logo`, `bun --cwd copy run facts`.
 
