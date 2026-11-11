@@ -30,6 +30,7 @@ targets:
       path: App/Info.plist
       properties:
         CFBundleDisplayName: retake
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         UILaunchScreen: {}
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: true
@@ -63,6 +64,7 @@ targets:
       path: Widgets/Info.plist
       properties:
         CFBundleDisplayName: retake
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     settings:
